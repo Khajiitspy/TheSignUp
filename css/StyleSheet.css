@@ -1,0 +1,135 @@
+﻿body {
+    background-color: darkgoldenrod;
+    background-image: url('/Images/Village.jpg');
+    background-size:cover;
+}
+
+h1 {
+    font-size: 25px;
+    color: #522e0c;
+    text-align: center;
+}
+
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-height: 650px;
+    overflow: auto;
+}
+
+.Avatar {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    margin: 20px;
+    cursor: pointer;
+}
+
+.UserBreif {
+    display:flex;
+    border-radius: 10px;
+}
+    
+    .UserBreif:hover{
+        background-color: #f8cb9a;
+    }
+
+.modalMenu {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    padding: 20px;
+    border: 1px solid #888;
+    z-index: 1;
+}
+
+    .modalMenu ul{
+        list-style-type:none;
+        padding: 0px;
+        margin: 0px;
+    }
+        .modalMenu li:hover{
+            background-color: #ffc65f;
+        }
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+
+.modal-content {
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fefefe;
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.MainButton {
+    background-color: #522e0c;
+    color: white;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+    .EditorButton:hover,
+    .MainButton:hover {
+        background-color: #2e1e02;
+    }
+
+.EditorButton {
+    background-color: #522e0c;
+    color: white;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.fileSelector {
+    background-color: #522e0c;
+    padding: 10px;
+    border-radius: 10px;
+    color: ghostwhite;
+}
+
+.AvatarPreview {
+    width: 450px;
+    height: 450px;
+    margin: 15px;
+}

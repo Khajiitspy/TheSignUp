@@ -1,0 +1,271 @@
+﻿﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Users</title>
+    <link href="/css/cropper.min.css" rel="stylesheet" />
+    <link href="/css/StyleSheet.css" rel="stylesheet" />
+    <style>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User List</h1>
+        <div id="user-list">
+
+        </div>
+    </div>
+
+    <div class="modalMenu" id="ProfileContextMenu">
+        <ul>
+            <li id="EditProfile">Edit</li>
+            <li id="DeleteProfile">Delete</li>
+        </ul>
+    </div>
+
+    <div id="ProfileEditor" class="modal">
+        <div class="modal-content" style="align-items:initial;">
+            <h1>Let's change things up...</h1>
+            <form style="display:flex; flex-direction:column; align-items:center;" id="Registration">
+                <img class="Avatar" id="Avatar" src="/Images/EmptyAvatar.jpg" alt="Upload an image">
+
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+
+                <button class="MainButton" type="submit">Save</button>
+                <p style="color: orange;" id="CancelChanges">Cancel</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="AvatarEditor" class="modal">
+        <div class="modal-content">
+            <input class="fileSelector" type="file" id="uploadImage" accept="image/*">
+            <div class="AvatarPreview">
+                <img id="AvatarPreview" src="/Images/EmptyAvatar.jpg" alt="Upload an image">
+            </div>
+            <div style="display:flex; justify-content:space-between; width:100%;">
+                <button class="EditorButton" id="Cancel">Cancel</button>
+                <button class="EditorButton" style="background-color: transparent; color: #522e0c" id="Rotate">Rotate</button>
+                <button class="EditorButton" id="Confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/js/cropper.min.js"></script>
+    <script>
+
+        let cropper;
+
+        let users = JSON.parse(localStorage.users);
+
+        const userList = document.getElementById("user-list");
+        const ProfileEditor = document.getElementById("ProfileEditor");
+        const ContextMenu = document.getElementById("ProfileContextMenu");
+        const EditProfile = document.getElementById("EditProfile");
+        const DeleteProfile = document.getElementById("DeleteProfile");
+        const Avatar = document.getElementById('Avatar');
+        const AvatarEditor = document.getElementById('AvatarEditor');
+        const AvatarPreview = document.getElementById('AvatarPreview');
+        const uploadImage = document.getElementById('uploadImage');
+        const Rotate = document.getElementById('Rotate');
+        const CloseEditor = document.getElementById('Cancel');
+        const ConfirmEditor = document.getElementById('Confirm');
+        const Registration = document.getElementById('Registration');
+        const CancelProfileEditor = document.getElementById('CancelChanges');
+        let uploadedImageURL;
+
+        let ChosenProfile;
+
+        function RenderItems() {
+            userList.innerHTML = ``;
+            users.forEach((user, index) => {
+                userList.innerHTML += `
+                                <div class="UserBreif" oncontextmenu="showModalMenu(event,${index})">
+                                    <img class="Avatar" src="${user.avatar}" alt="${user.name}">
+                                    <div>
+                                        <p style="font-weight:bold" >${user.name}</p>
+                                        <p style="color:slategray;" >${user.email}</p>
+                                    </div>
+                                </div>
+                                `;
+            });
+        }
+
+        function showModalMenu(e, index) {
+            e.preventDefault();
+
+            ChosenProfile = index;
+            ContextMenu.style.display = "block";
+            var x = e.clientX;
+            var y = e.clientY;
+            ContextMenu.style.left = x + "px";
+            ContextMenu.style.top = y + "px";
+        }
+
+        window.onclick = function (event) {
+            if (event.target != ContextMenu) {
+                ContextMenu.style.display = "none";
+            }
+            if (event.target == AvatarEditor) {
+                AvatarEditor.style.display = "none";
+            }
+        }
+
+        //window.addEventListener('scroll', function () {
+        //    modal.style.display = "none";
+        //}
+
+        DeleteProfile.onclick = (e) => {
+            users.splice(ChosenProfile, 1);
+            localStorage.setItem('users', JSON.stringify(users));
+            RenderItems();
+        }
+
+        EditProfile.onclick = (e) => {
+            const username = document.getElementById("username");
+            const email = document.getElementById("email");
+            const password = document.getElementById("password");
+
+            Avatar.src = users[ChosenProfile].avatar;
+            username.value = users[ChosenProfile].name;
+            email.value = users[ChosenProfile].email;
+            password.value = users[ChosenProfile].password;
+            ProfileEditor.style.display = "block";
+        }
+
+        CancelProfileEditor.onclick = (e) => {
+            ProfileEditor.style.display = "none";
+        }
+
+        Rotate.onclick = function (e) {
+            if (cropper) {
+                cropper.rotate(60);
+            }
+        }
+
+        uploadImage.onchange = (event) => {
+
+            const { target } = event;
+            const { files } = target;
+            const file = files[0];
+            if (file) {
+                if (/^image\/\w+/.test(file.type)) {
+                    if (uploadedImageURL) {
+                        URL.revokeObjectURL(uploadedImageURL);
+                    }
+
+                    AvatarPreview.src = uploadedImageURL = URL.createObjectURL(file);
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    cropper = new Cropper(AvatarPreview, {
+                        aspectRatio: 1,
+                        viewMode: 1
+                    });
+                }
+                else {
+                    window.alert('Please choose an image file.');
+                }
+            }
+        }
+
+
+        Avatar.onclick = function (e) {
+            AvatarEditor.style.display = 'block';
+            let uploadedImageURL = Avatar.src;
+            AvatarPreview.src = uploadedImageURL;
+
+            if (cropper) {
+                cropper.destroy();
+            }
+            cropper = new Cropper(AvatarPreview, {
+                aspectRatio: 1,
+                viewMode: 1
+            });
+        }
+
+        CloseEditor.onclick = function (event) {
+            AvatarEditor.style.display = "none";
+        }
+
+        ConfirmEditor.onclick = function (e) {
+            if (cropper) {
+                var base64 = cropper.getCroppedCanvas().toDataURL();
+                Avatar.src = base64;
+            }
+            AvatarEditor.style.display = "none";
+        }
+
+        Registration.onsubmit = (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById("username");
+            const email = document.getElementById("email");
+            const password = document.getElementById("password");
+
+            const formData = {
+                name: username.value,
+                email: email.value,
+                password: password.value,
+                avatar: Avatar.src
+            }
+
+            const confirmpassword = document.getElementById("confirm-password");
+            confirmpassword.style.borderWidth = "1px";
+            confirmpassword.style.borderColor = "#ccc";
+
+            if (formData.password != confirmpassword.value) {
+                confirmpassword.style.borderWidth = "5px";
+                confirmpassword.style.borderColor = "red";
+                alert("Password does not match")
+                return;
+            }
+
+            email.style.borderWidth = "1px";
+            email.style.borderColor = "#ccc";
+
+            username.style.borderWidth = "1px";
+            username.style.borderColor = "#ccc";
+
+            users.forEach(user => {
+                if (formData.email != users[ChosenProfile].email && user.email == formData.email) {
+                    email.style.borderWidth = "5px";
+                    email.style.borderColor = "red";
+                    alert("A user with this Email has already been registered!");
+                    return;
+                }
+                if (formData.name != users[ChosenProfile].name && user.name == formData.name) {
+                    username.style.borderWidth = "5px";
+                    username.style.borderColor = "red";
+                    alert("A user with this username has already been registered!");
+                    return;
+                }
+            });
+
+            users[ChosenProfile] = formData;
+
+            let json = JSON.stringify(users);
+            localStorage.setItem("users", json);
+            console.log("Submit form", json);
+            ProfileEditor.style.display = "none";
+            RenderItems();
+        }
+
+        RenderItems();
+    </script>
+</body>
+</html>
