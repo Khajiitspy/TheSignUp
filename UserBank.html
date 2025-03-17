@@ -70,6 +70,35 @@
 
         let users = JSON.parse(localStorage.users);
 
+        //My attempt at retreiving the users from the server. Doesn't quite work, since we were not supposed to do this, I will just leave it commented
+
+        //const xhr = new XMLHttpRequest();
+        //const url = "https://goose.itstep.click/api/Users/all"; // Replace with your actual API URL
+
+        //// Open a connection
+        //xhr.open("GET", url, true);
+
+        //// Set the request headers (if required by the server)
+        // xhr.setRequestHeader("Content-Type", "application/json");
+
+        //// Handle response
+        //xhr.onreadystatechange = function () {
+        //    if (xhr.readyState === 4) {
+        //        if (xhr.status >= 200 && xhr.status < 300) {
+        //            // Request was successful
+        //            users = JSON.parse(xhr.responseText);
+        //            console.log("Users:", users);
+        //            // Process the retrieved users data as needed
+        //        } else {
+        //            // Request failed
+        //            console.error("Error:", xhr.status, xhr.responseText);
+        //        }
+        //    }
+        //};
+
+        //// Send the request
+        //xhr.send();
+
         const userList = document.getElementById("user-list");
         const ProfileEditor = document.getElementById("ProfileEditor");
         const ContextMenu = document.getElementById("ProfileContextMenu");
