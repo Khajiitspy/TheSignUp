@@ -53,57 +53,37 @@
         </div>
     </div>
 
+    <!--<script>loadDOM('/partials/AvatarEditor.html')</script>-->
 
     <script src="/js/cropper.min.js"></script>
+    <script src="/js/AvatarEditor.js"></script>
     <script>
         let cropper;
         const Avatar = document.getElementById('Avatar');
         const AvatarEditor = document.getElementById('AvatarEditor');
-        const AvatarPreview = document.getElementById('AvatarPreview');
-        const uploadImage = document.getElementById('uploadImage');
-        const Rotate = document.getElementById('Rotate');
-        const CloseEditor = document.getElementById('Cancel');
-        const ConfirmEditor = document.getElementById('Confirm');
         const Registration = document.getElementById('Registration');
         const ToLogin = document.getElementById('ToLogin');
+        const username = document.getElementById("username");
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const usernameError = document.getElementById("usernameError");
+        const emailError = document.getElementById("emailError");
+        const passwordError = document.getElementById("passwordError");
+        const confirmpassword = document.getElementById("confirm-password");
+        const confirmpasswordError = document.getElementById("confirm-passwordError");
+
         let uploadedImageURL = Avatar.src;
         AvatarPreview.src = uploadedImageURL;
 
-        // The other pages are pointless if I don't know how to interact with the server to make them work yet.
-
-        //ToLogin.onclick = (e) => {
-        //    location.href = "/Login.html";
-        //}
+        ToLogin.onclick = (e) => {
+            location.href = "/Login.html";
+        }
 
         Registration.onsubmit = (e) => {
             e.preventDefault();
 
-            const username = document.getElementById("username");
-            const email = document.getElementById("email");
-            const password = document.getElementById("password");
-            const usernameError = document.getElementById("usernameError");
-            const emailError = document.getElementById("emailError");
-            const passwordError = document.getElementById("passwordError");
-
-            const confirmpassword = document.getElementById("confirm-password"); 
-            const confirmpasswordError = document.getElementById("confirm-passwordError"); 
-
             //reset errors
-            confirmpasswordError.textContent = "";
-            confirmpassword.style.borderWidth = "1px";
-            confirmpassword.style.borderColor = "#ccc";
-
-            passwordError.textContent = "";
-            password.style.borderWidth = "1px";
-            password.style.borderColor = "#ccc";
-
-            emailError.textContent = "";
-            email.style.borderWidth = "1px";
-            email.style.borderColor = "#ccc";
-
-            usernameError.textContent = "";
-            username.style.borderWidth = "1px";
-            username.style.borderColor = "#ccc";
+            clearErrors();
 
             const xhr = new XMLHttpRequest();
             const url = "https://goose.itstep.click/api/Account/register"; //443 // Replace with your actual API URL
@@ -127,38 +107,15 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status >= 200 && xhr.status < 300) {
+
                         console.log("Success:", xhr.responseText);
+                        const resp = xhr.responseText;
+                        const token = JSON.parse(resp).token;
+                        localStorage.setItem("token", token);
+                        location.href = "/Main.html";
+
                     } else if (xhr.status === 400) {
-                        const errorResponse = JSON.parse(xhr.responseText);
-                        const errors = errorResponse.errors;
-
-
-                        Object.keys(errors).forEach(field => {
-                            const fieldErrors = errors[field];
-                            let errorLabel;
-                            let errorInput;
-                            if (field == "email") {
-                                errorLabel = emailError;
-                                errorInput = email;
-                            }
-                            else if (field == "firstName") {
-                                errorLabel = usernameError;
-                                errorInput = username;
-                            }
-                            else if (field == "password") {
-                                errorLabel = passwordError;
-                                errorInput = password;
-                            }
-                            else if (field == "confirmPassword") {
-                                errorLabel = confirmpasswordError;
-                                errorInput = confirmpassword;
-                            }
-                            fieldErrors.forEach(message => {
-                                errorLabel.textContent += message + "; ";
-                                errorInput.style.borderWidth = "5px";
-                                errorInput.style.borderColor = "red";
-                            });
-                        });
+                        HandleError(xhr.responseText);
                     } else {
                         // Other error
                         console.error("Error:", xhr.status, xhr.responseText);
@@ -169,51 +126,57 @@
 
             // Send request
             xhr.send(JSON.stringify(data));
-
-            // The other pages are pointless if I don't know how to interact with the server to make them work yet.
-            //location.href = "/UserBank.html";
         }
 
-        function getErrorMessage(errors, field) {
-            const fieldErrors = errors[field];
-            if (fieldErrors) {
-                return fieldErrors[0]; // Return the first error message for the specific field
-            }
-            return "An unknown error occurred.";
+        function clearErrors() {
+            confirmpasswordError.textContent = "";
+            confirmpassword.style.borderWidth = "1px";
+            confirmpassword.style.borderColor = "#ccc";
+
+            passwordError.textContent = "";
+            password.style.borderWidth = "1px";
+            password.style.borderColor = "#ccc";
+
+            emailError.textContent = "";
+            email.style.borderWidth = "1px";
+            email.style.borderColor = "#ccc";
+
+            usernameError.textContent = "";
+            username.style.borderWidth = "1px";
+            username.style.borderColor = "#ccc";
         }
 
-        Rotate.onclick = function (e) {
-            if (cropper) {
-                cropper.rotate(60);
-            }
-        }
+        function HandleError(Response) {
+            const errorResponse = JSON.parse(Response);
+            const errors = errorResponse.errors;
 
-        uploadImage.onchange = (event) => {
 
-            const { target } = event;
-            const { files } = target;
-            const file = files[0];
-            if (file) {
-                if (/^image\/\w+/.test(file.type)) {
-                    if (uploadedImageURL) {
-                        URL.revokeObjectURL(uploadedImageURL);
-                    }
-
-                    AvatarPreview.src = uploadedImageURL = URL.createObjectURL(file);
-
-                    if (cropper) {
-                        cropper.destroy();
-                    }
-
-                    cropper = new Cropper(AvatarPreview, {
-                        aspectRatio: 1,
-                        viewMode: 1
-                    });
+            Object.keys(errors).forEach(field => {
+                const fieldErrors = errors[field];
+                let errorLabel;
+                let errorInput;
+                if (field == "email") {
+                    errorLabel = emailError;
+                    errorInput = email;
                 }
-                else {
-                    window.alert('Please choose an image file.');
+                else if (field == "firstName") {
+                    errorLabel = usernameError;
+                    errorInput = username;
                 }
-            }
+                else if (field == "password") {
+                    errorLabel = passwordError;
+                    errorInput = password;
+                }
+                else if (field == "confirmPassword") {
+                    errorLabel = confirmpasswordError;
+                    errorInput = confirmpassword;
+                }
+                fieldErrors.forEach(message => {
+                    errorLabel.textContent += message + "; ";
+                    errorInput.style.borderWidth = "5px";
+                    errorInput.style.borderColor = "red";
+                });
+            });
         }
 
 
@@ -235,18 +198,6 @@
             if (event.target == AvatarEditor) {
                 AvatarEditor.style.display = "none";
             }
-        }
-
-        CloseEditor.onclick = function (event) {
-            AvatarEditor.style.display = "none";
-        }
-
-        ConfirmEditor.onclick = function (e) {
-            if (cropper) {
-                var base64 = cropper.getCroppedCanvas().toDataURL();
-                Avatar.src = base64;
-            }
-            AvatarEditor.style.display = "none";
         }
     </script>
 </body>

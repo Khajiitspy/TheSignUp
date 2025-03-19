@@ -1,7 +1,9 @@
 ﻿body {
     background-color: darkgoldenrod;
     background-image: url('/Images/Village.jpg');
-    background-size:cover;
+    background-size: cover;
+    margin: 0px; 
+    padding: 0px; 
 }
 
 h1 {
