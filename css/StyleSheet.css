@@ -140,3 +140,56 @@ input[type="password"] {
     font-size: 15px;
     color: crimson;
 }
+
+nav {
+    background-color: #9b7042;
+    padding: 10px;
+    /*            border: solid;
+            border-width:2px 0px 2px 0px;
+            border-color:gold;*/
+    margin: 0px 0px 10px 0px;
+}
+
+    nav ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        nav ul li {
+            display: inline-block;
+            position: relative;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            nav ul li a {
+                display: block;
+                color: #fff;
+                text-decoration: none;
+                padding: 5px 10px;
+            }
+
+            nav ul li ul {
+                display: none;
+                position: absolute;
+                background-color: #9b7042;
+                min-width: 150px;
+                border: solid;
+                border-radius: 5px;
+                border-color: gold;
+                border-width: 2px;
+                font-size: 15px;
+            }
+
+            nav ul li:hover > ul {
+                display: block;
+            }
+
+            nav ul li ul li {
+                display: block;
+                text-align: center;
+            }

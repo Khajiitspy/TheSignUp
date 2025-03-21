@@ -23,23 +23,3 @@ function RefreshAvatar() {
 }
 
 RefreshAvatar();
-
-const ContextMenu = document.getElementById("ProfileContextMenu");
-
-function showModalMenu(e) {
-    e.preventDefault();
-
-
-/*    alert("hello!");*/
-    ContextMenu.style.display = "block";
-    //var x = e.clientX;
-    //var y = e.clientY;
-    //ContextMenu.style.left = x + "px";
-    //ContextMenu.style.top = y + "px";
-}
-
-window.onclick = function (event) {
-    if (event.target != ContextMenu) {
-        ContextMenu.style.display = "none";
-    }
-}
