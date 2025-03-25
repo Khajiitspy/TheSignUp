@@ -11,7 +11,6 @@ Rotate.onclick = function (e) {
 }
 
 uploadImage.onchange = (event) => {
-
     const { target } = event;
     const { files } = target;
     const file = files[0];
@@ -39,13 +38,5 @@ uploadImage.onchange = (event) => {
 }
 
 CloseEditor.onclick = function (event) {
-    AvatarEditor.style.display = "none";
-}
-
-ConfirmEditor.onclick = function (e) {
-    if (cropper) {
-        var base64 = cropper.getCroppedCanvas().toDataURL();
-        Avatar.src = base64;
-    }
     AvatarEditor.style.display = "none";
 }

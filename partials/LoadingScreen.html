@@ -20,7 +20,7 @@
 
 </style>﻿
 
-<div class="modal" id="loading-overlay" style="display:none; background-color: #00000086; justify-content:center; align-items:center;">
+<div class="modal" id="loading-overlay" style="z-index: 2; display:none; background-color: #00000086; justify-content:center; align-items:center;">
     <div style="display:flex; align-items:center; flex-direction:column">
         <div class="spinning-element"></div>
         <p style="color:antiquewhite; font-weight: bold; font-size: 20px">Loading...</p>
@@ -29,9 +29,9 @@
 
  <script>
     const show_loading = () => {
-        let display = document.getElementById("loading-overlay").style.display = "flex";
+        document.getElementById("loading-overlay").style.display = "flex";
     }
      const hide_loading = () => {
-         let display = document.getElementById("loading-overlay").style.display = "none";
+         document.getElementById("loading-overlay").style.display = "none";
      }
  </script>

@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <title>Profile</title>
 </head>
-<body style="margin:0px; padding: 0px;">
+<body>
 
     <script>loadDOM('/partials/Navigation.html')</script>
 
@@ -18,7 +18,7 @@
             <img class="Avatar" id="ProfileAvatar" src="/Images/EmptyAvatar.jpg" alt="Upload an image">
             <label id="ProfileUsername">Username</label>
             <label id="email">Email</label>
-            <button class="MainButton" style="margin: 10px 0px 0px 0px">Signout</button>
+            <button class="MainButton" style="margin: 10px 0px 0px 0px" id="Signout">Signout</button>
         </div>
     </div>
 
@@ -30,6 +30,11 @@
         const ProfileAvatar = document.getElementById('ProfileAvatar');
         const ProfileUsername = document.getElementById("ProfileUsername");
         const Email = document.getElementById("email");
+        const Signout = document.getElementById("Signout");
+
+        Signout.onclick = (e) => {
+            location.href = "/index.html";
+        }
 
         function RefreshProfile() {
             if (localStorage.getItem("token")) {
