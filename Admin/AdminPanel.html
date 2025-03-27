@@ -6,24 +6,11 @@
     <link href="/css/StyleSheet.css" rel="stylesheet" />
     <script src="/js/site.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.14.0/qs.min.js" integrity="sha512-6yLIYbXqyvjSDYNO1pgBRjwWPBw66kMOb+sHqrvn457+iJiret0PeHzUlpLKHH0fYzX9bxGtPDqQ84xKrhEYSQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link href="/css/cropper.min.css" rel="stylesheet" />
     <title>Admin Panel</title>
 
     <style>
-        .AddButton {
-            font-weight: bold;
-            color: ghostwhite;
-            background-color: #4d3718;
-            border-radius: 50%;
-            font-size: 20px;
-            height: 50px;
-            width: 50px;
-        }
-
-            .AddButton:hover {
-                background-color: darkgoldenrod;
-                border-color: #4d3718;
-            }
 
         .CategoryDisplay {
             display: flex;
@@ -56,23 +43,87 @@
                 margin: 0px;
                 padding: 0px;
             }
+
+        .CircleButton {
+            font-weight: bold;
+            color: ghostwhite;
+            background-color: #4d3718;
+            border-radius: 50%;
+            font-size: 20px;
+        }
+
+            .CircleButton:hover {
+                background-color: darkgoldenrod;
+                border-color: #4d3718;
+            }
+
+        .SearchBar {
+            display: flex;
+            align-items: center;
+            border: solid;
+            border-width: 0px 0px 1px 0px;
+            border-color: #4d3718;
+            margin: 0px;
+        }
+
+            .SearchBar input {
+                margin: 0px;
+                width: 200px;
+                padding: 5px 5px 1px 5px;
+                border-width: 0px;
+                font-size: 16px;
+                outline: none
+            }
+
+                .SearchBar input:focus {
+                    border: solid;
+                    border-radius: 0px;
+                    border-width: 0px 0px 1px 0px;
+                    border-color: #4d3718;
+                }
+
+            .SearchBar button {
+                text-decoration: none;
+                padding: 0px 10px;
+                border: solid;
+                border-radius: 5px;
+                border-color: transparent;
+                border-width: 2px;
+            }
+
+                .SearchBar button:hover {
+                    color: gainsboro;
+                    background-color: darkgoldenrod;
+                    border-color: #4d3718;
+                }
+
     </style>
 </head>
 <body>
-    <!--Does not load those style parameters from the .css file...-->
+
     <script>loadDOM('/partials/Navigation.html')</script>
 
     <div style="display: flex;">
         <script>loadDOM('/partials/AdminPanelMenu.html')</script>
 
         <div style="display: block; margin: auto">
-            <div class="container" style="max-width: 600px">
-                <div style="display: flex; justify-content:space-between">
-                    <h1 id="pageHeader">Admin Panel</h1>
-                    <button class="AddButton" id="AddCategory">+</button>
+            <div class="container" style="max-width: 900px; max-height: 500px">
+                <div style="display: flex; justify-content:space-between; align-items: center;">
+                    <h1 id="pageHeader">Categories</h1>
+                    <div class="SearchBar">
+                        <input type="text" name="CategoryName" id="CategoryName" class="" style="" placeholder="Category" />
+                        <button id="SearchButton">🔎 Search</button>
+                    </div>
+                    <button class="CircleButton" style="height: 50px; width: 50px" id="AddCategory">+</button>
                 </div>
-                <div id="pageContent" style="max-height: 400px; overflow:auto">
+                <div id="pageContent" style="max-height: 300px; overflow: auto; overflow-y: auto; display: flex; flex-wrap: wrap; position:relative;">
 
+                </div>
+
+                <div id="pagination-container" style="display:flex; justify-content: space-evenly; justify-items:center; align-items:center; margin: 5px 0px 0px 0px">
+                    <button onclick="prevPage()" style="height: 40px; width: 40px" class="CircleButton">&laquo;</button>
+                    <p id="page-number" style=" color: #6b4303"></p>
+                    <button onclick="nextPage()" style="height: 40px; width: 40px" class="CircleButton">&raquo;</button>
                 </div>
             </div>
         </div>
@@ -110,6 +161,7 @@
     <script src="/js/NavbarActions.js"></script>
 
     <script>
+
         let cropper;
         const AddCategory = document.getElementById("AddCategory");
         const CategoryImage = document.getElementById("CategoryImage");
@@ -120,9 +172,17 @@
         const PriorityError = document.getElementById("PriorityError");
         const NameError = document.getElementById("NameError");
         const AvatarEditor = document.getElementById('AvatarEditor');
+        const SearchButton = document.getElementById('SearchButton');
 
         let uploadedImageURL = Avatar.src;
         AvatarPreview.src = uploadedImageURL;
+
+        SearchButton.onclick = (e) => {
+            const CategoryName = document.getElementById("CategoryName");
+
+            search.title = CategoryName.value;
+            fetchCategories();
+        }
 
         CategoryForm.onsubmit = (e) => {
             e.preventDefault();
@@ -237,34 +297,46 @@
             CategoryModal.style.display = "block";
         }
 
-        fetchCategories();
+        let search = {
+            page: 1,
+            title: ''
+        };
+
+        let totalPages = 0;
 
         async function fetchCategories() {
             show_loading();
             try {
-                const response = await axios.get('https://goose.itstep.click/api/Categories/list', {
+                if (!(search.page >= 1)) {
+                    search.page = 1;
+                }
+                const query = Qs.stringify(search);
+                history.pushState(null, null, `?${query}`);
+                const response = await axios.get(`https://goose.itstep.click/api/Categories/search?${query}`, {
                     headers: {
                         'Accept': '*/*'
                     }
                 });
                 const { data } = response;
+                console.log("server result", data);
+                const { categories, pages, total, currentPage } = data;
+                totalPages = pages;
                 const listCategories = document.getElementById("pageContent");
-                const pageHeader = document.getElementById("pageHeader");
-                pageHeader.innerText = "Categories";
                 listCategories.innerHTML = "";
-                data.forEach(item => {
+                categories.forEach(item => {
                     listCategories.innerHTML += `
-                                                <div class="CategoryDisplay">
-                                                    <img src="https://goose.itstep.click/images/200_${item.image}" alt="Category">
-                                                    <div style="margin: 0px 0px 0px 10px">
-                                                        <h3 >${item.title}<h3>
-                                                        <p>Slug: ${item.urlSlug}</p>
-                                                        <p>Priority: ${item.priority}</p>
+                                                    <div class="CategoryDisplay">
+                                                        <img src="https://goose.itstep.click/images/200_${item.image}" alt="Category">
+                                                        <div style="margin: 0px 0px 0px 10px">
+                                                            <h3 >${item.title}<h3>
+                                                            <p>Slug: ${item.urlSlug}</p>
+                                                            <p>Priority: ${item.priority}</p>
+                                                        </div>
+                                                        <button style="margin: auto 0px auto auto" onclick="Remove(${item.id})" class="NegativeButton">Remove</button>
                                                     </div>
-                                                    <button style="margin: auto 0px auto auto" onclick="Remove(${item.id})" class="NegativeButton">Remove</button>
-                                                </div>
-                                                `;
+                                                    `;
                 });
+                updatePagination();
             } catch (error) {
                 console.error('Error fetching categories:', error);
             }
@@ -322,6 +394,43 @@
             }
             AvatarEditor.style.display = "none";
         }
+
+        function prevPage() {
+            if (search.page > 1) {
+                search.page--;
+                updatePagination();
+                fetchCategories();
+                updateUrl();
+            }
+        }
+
+        function nextPage() {
+            if (search.page < totalPages) {
+                search.page++;
+                updatePagination();
+                fetchCategories();
+                updateUrl();
+            }
+        }
+
+        function updatePagination() {
+            const pageNumber = document.getElementById("page-number");
+            pageNumber.innerText = `Page ${search.page} of ${totalPages}`;
+            document.getElementById("pageContent").scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function loadUrl() {
+            const urlParams = Qs.parse(window.location.search.substr(1));
+            search.page = parseInt(urlParams.page);
+
+
+            fetchCategories();
+        }
+
+        loadUrl();
     </script>
 </body>
 </html>
