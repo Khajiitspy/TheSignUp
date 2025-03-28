@@ -1,0 +1,124 @@
+﻿
+<style>
+    /*Stylesheet.css does not load this...*/
+    nav {
+        background-color: #9b7042;
+        padding: 10px;
+        border: solid;
+        border-width: 0px 0px 2px 0px;
+        border-color: #4d3718;
+        margin: 0px;
+    }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            nav ul li {
+                display: inline-block;
+                position: relative;
+                font-size: 20px;
+                font-weight: bold;
+            }
+
+                nav ul li a {
+                    display: block;
+                    color: gainsboro;
+                    text-decoration: none;
+                    padding: 0px 10px;
+                    border: solid;
+                    border-radius: 5px;
+                    border-color: transparent;
+                    border-width: 2px;
+                }
+
+                    nav ul li a:hover {
+                        background-color: darkgoldenrod;
+                        border-color: #4d3718;
+                    }
+
+                nav ul li ul {
+                    display: none;
+                    position: absolute;
+                    background-color: #9b7042;
+                    min-width: 150px;
+                    border: solid;
+                    border-radius: 5px;
+                    border-color: #4d3718;
+                    border-width: 2px;
+                    font-size: 15px;
+                }
+
+                nav ul li:hover > ul {
+
+                    display: block;
+                }
+
+                nav ul li ul li {
+                    display: block;
+                    text-align: center;
+                }
+</style>
+
+<nav>
+    <ul>
+        <li>
+            <div style="display:flex;">
+                <a href="/Main.html">Main</a>
+            </div>
+        </li>
+        <li>
+            <div style="display:flex; align-items:center">
+                <p id="Username" style="padding:0; margin:0; text-align:center; color:gainsboro">guest</p>
+                <img class="Avatar" style=" width: 50px; height: 50px; margin: 0px; padding: 0px 10px 0px 10px" id="Avatar" src="/Images/EmptyAvatar.jpg" alt=" ">
+            </div>
+            <ul>
+                <li><a href="/Admin/AdminPanel.html" style="display:none" id="AdminPanel">Admin Panel</a></li>
+                <li><a href="/index.html">Signout</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+
+<script>
+    //Doesn't work...
+
+    const Avatar = document.getElementById('Avatar');
+    const Username = document.getElementById('Username');
+
+    Avatar.onclick = function (event) {
+        location.href = "/Profile.html";
+    }
+
+    function RefreshAvatar() {
+        const token = localStorage.getItem("token");
+        axios.get('https://goose.itstep.click/api/Account/profile', {
+            headers: {
+                'accept': '*/*',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(resp => {
+                const { data } = resp;
+                const { id, email, firstName, secondName, phone, photo } = data;
+                Avatar.src = `https://goose.itstep.click/images/${photo}`;
+                Username.innerText = `${firstName}`;
+
+                if (email == "novakvova@gmail.com") {
+                    const AdminPanel = document.getElementById('AdminPanel');
+                    AdminPanel.style.display = "block";
+                }
+            })
+            .catch(err => {
+                console.log("Error", err);
+            });
+    }
+
+    RefreshAvatar();
+</script>

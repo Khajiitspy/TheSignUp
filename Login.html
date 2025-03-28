@@ -8,84 +8,6 @@
     <link href="/css/StyleSheet.css" rel="stylesheet" />
 
     <style>
-
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .MainButton {
-            background-color: #522e0c;
-            color: white;
-            padding: 12px 20px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-            .EditorButton:hover,
-            .MainButton:hover {
-                background-color: #2e1e02;
-            }
-
-        .EditorButton {
-            background-color: #522e0c;
-            color: white;
-            padding: 12px 20px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-
-        .modal-content {
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fefefe;
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 35%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .fileSelector {
-            background-color: #522e0c;
-            padding: 10px;
-            border-radius: 10px;
-            color: ghostwhite;
-        }
-
-        .AvatarPreview {
-            width: 450px;
-            height: 450px;
-            margin: 15px;
-        }
     </style>
 </head>
 <body>
@@ -93,11 +15,13 @@
         <h1>Treasures lie beyond!</h1>
         <form style="display:flex; flex-direction:column; align-items:center;" id="Registration">
 
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            <label for="email">Email</label>
+            <input type="text" id="email" name="email" placeholder="Enter your Email" required>
+            <label class="ErrorLabel" style="font-size:12px; color:crimson" id="EmailError"></label>
 
             <label for="password">Password</label>
             <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <label class="ErrorLabel" style="font-size:12px; color:crimson" id="PasswordError"></label>
 
             <button class="MainButton" type="submit">Login</button>
             <p style="color: orange;" id="ToSignUp">Sign Up --></p>
@@ -107,6 +31,10 @@
     <script>
         const Registration = document.getElementById('Registration');
         const ToSignUp = document.getElementById('ToSignUp');
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const emailError = document.getElementById("EmailError");
+        const passwordError = document.getElementById("PasswordError");
 
         ToSignUp.onclick = (e) => {
             location.href = "/index.html";
@@ -115,20 +43,79 @@
         Registration.onsubmit = (e) => {
             e.preventDefault();
 
-            const username = document.getElementById("username");
-            const password = document.getElementById("password");
+            clearErrors()
 
-            const oldItems = JSON.parse(localStorage.users ?? "[]");
-            console.log("Old list", oldItems);
+            const xhr = new XMLHttpRequest();
+            const url = "https://goose.itstep.click/api/Account/login"; //443 // Replace with your actual API URL
 
-            oldItems.forEach(user => {
-                if (user.name == username.value && user.password == password.value) {
-                    location.href = "/UserBank.html";
-                    return;
+            // Prepare the data
+            const data = {
+                email: email.value,
+                password: password.value,
+            };
+
+            // Open a connection
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            // Handle response
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+
+                        console.log("Success:", xhr.responseText);
+                        const resp = xhr.responseText;
+                        const token = JSON.parse(resp).token;
+                        localStorage.setItem("token", token);
+                        location.href = "/Main.html";
+
+                    } else if (xhr.status === 400) {
+                        HandleError(xhr.responseText);
+                    } else {
+                        // Other error
+                        console.error("Error:", xhr.status, xhr.responseText);
+                        showMessage("Error", "An error occurred. Please try again later.");
+                    }
                 }
-            });
+            };
 
-            alert("User not found!");
+            // Send request
+            xhr.send(JSON.stringify(data));
+        }
+
+        function clearErrors() {
+            passwordError.textContent = "";
+            password.style.borderWidth = "1px";
+            password.style.borderColor = "#ccc";
+
+            emailError.textContent = "";
+            email.style.borderWidth = "1px";
+            email.style.borderColor = "#ccc";
+        }
+
+        function HandleError(Response) {
+            const errorResponse = JSON.parse(Response);
+            const errors = errorResponse.errors;
+
+
+            Object.keys(errors).forEach(field => {
+                const fieldErrors = errors[field];
+                let errorLabel;
+                let errorInput;
+                if (field == "email") {
+                    errorLabel = emailError;
+                    errorInput = email;
+                }
+                else if (field == "password") {
+                    errorLabel = passwordError;
+                    errorInput = password;
+                }
+                fieldErrors.forEach(message => {
+                    errorLabel.textContent += message + "; ";
+                    errorInput.style.borderWidth = "5px";
+                    errorInput.style.borderColor = "red";
+                });
+            });
         }
     </script>
 </body>
