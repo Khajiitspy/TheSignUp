@@ -60,25 +60,27 @@
         .SearchBar {
             display: flex;
             align-items: center;
-            border: solid;
-            border-width: 0px 0px 1px 0px;
-            border-color: #4d3718;
+            flex-flow:column;
             margin: 0px;
+            padding: 10px;
         }
 
             .SearchBar input {
-                margin: 0px;
+                margin: 10px 0px;
                 width: 200px;
                 padding: 5px 5px 1px 5px;
-                border-width: 0px;
+                border: solid;
+                border-width: 0px 0px 1px 0px;
+                border-color: #4d3718;
+                border-radius: 0px;
                 font-size: 16px;
-                outline: none
+                outline: none;
             }
 
                 .SearchBar input:focus {
                     border: solid;
                     border-radius: 0px;
-                    border-width: 0px 0px 1px 0px;
+                    border-width: 0px 0px 2px 0px;
                     border-color: #4d3718;
                 }
 
@@ -106,17 +108,13 @@
     <div style="display: flex;">
         <script>loadDOM('/partials/AdminPanelMenu.html')</script>
 
-        <div style="display: block; margin: auto">
-            <div class="container" style="max-width: 900px; max-height: 500px">
+        <div style="display: flex; margin: auto">
+            <div class="container" style="max-width: 600px; max-height: 600px">
                 <div style="display: flex; justify-content:space-between; align-items: center;">
                     <h1 id="pageHeader">Categories</h1>
-                    <div class="SearchBar">
-                        <input type="text" name="CategoryName" id="CategoryName" class="" style="" placeholder="Category" />
-                        <button id="SearchButton">🔎 Search</button>
-                    </div>
                     <button class="CircleButton" style="height: 50px; width: 50px" id="AddCategory">+</button>
                 </div>
-                <div id="pageContent" style="max-height: 300px; overflow: auto; overflow-y: auto; display: flex; flex-wrap: wrap; position:relative;">
+                <div id="pageContent" style="max-height: 400px; overflow: auto;">
 
                 </div>
 
@@ -125,6 +123,16 @@
                     <p id="page-number" style=" color: #6b4303"></p>
                     <button onclick="nextPage()" style="height: 40px; width: 40px" class="CircleButton">&raquo;</button>
                 </div>
+            </div>
+            <div class="container" style="margin-left: 20px;max-height: 600px">
+                <form class="SearchBar" id="formSearch">
+                    <h1>Filters</h1>
+                    <div style="display:flex; flex-flow:column; overflow:auto; max-height: 400px; margin: 0px 0px 20px 0px">
+                        <input type="text" name="title" id="title" class="" style="" placeholder="Category" />
+                        <input type="text" name="priority" id="priority" class="" style="" placeholder="Priority" />
+                    </div>
+                    <button id="SearchButton" type="submit">🔎 Search</button>
+                </form>
             </div>
         </div>
     </div>
@@ -177,13 +185,21 @@
         let uploadedImageURL = Avatar.src;
         AvatarPreview.src = uploadedImageURL;
 
-        SearchButton.onclick = (e) => {
-            const CategoryName = document.getElementById("CategoryName");
+        const formSearch = document.getElementById('formSearch');
+        formSearch.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-            search.title = CategoryName.value;
-            search.page = 1;
+            const formData = new FormData(formSearch);
+            const values = {};
+
+            for (const [name, value] of formData.entries()) {
+                values[name] = value;
+            }
+
+            search = { ...search, ...values, page: 1 };
+
             fetchCategories();
-        }
+        });
 
         CategoryForm.onsubmit = (e) => {
             e.preventDefault();
@@ -300,7 +316,6 @@
 
         let search = {
             page: 1,
-            title: ''
         };
 
         let totalPages = 0;
@@ -308,9 +323,9 @@
         async function fetchCategories() {
             show_loading();
             try {
-                if (!(search.page >= 1)) {
-                    search.page = 1;
-                }
+                search = Object.fromEntries(
+                    Object.entries(search).filter(([_, value]) => value !== null && value !== undefined && value !== "")
+                );
                 const query = Qs.stringify(search);
                 history.pushState(null, null, `?${query}`);
                 const response = await axios.get(`https://goose.itstep.click/api/Categories/search?${query}`, {
@@ -424,9 +439,19 @@
         }
 
         function loadUrl() {
-            const urlParams = Qs.parse(window.location.search.substr(1));
-            search.page = parseInt(urlParams.page);
+            let searchParams = {
+                page: new URLSearchParams(window.location.search).get('page') || 1,
+                title: new URLSearchParams(window.location.search).get('title') || '',
+                priority: new URLSearchParams(window.location.search).get('priority') || '',
+            };
 
+            console.log(searchParams.title);
+            document.getElementById('title').value = searchParams.title;
+            document.getElementById('priority').value = searchParams.priority;
+
+            search = {
+                ...search, ...searchParams
+            };
 
             fetchCategories();
         }
