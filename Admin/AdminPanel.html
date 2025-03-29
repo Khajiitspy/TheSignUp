@@ -112,7 +112,12 @@
             <div class="container" style="max-width: 600px; max-height: 600px">
                 <div style="display: flex; justify-content:space-between; align-items: center;">
                     <h1 id="pageHeader">Categories</h1>
-                    <button class="CircleButton" style="height: 50px; width: 50px" id="AddCategory">+</button>
+                    <p id="SelectedLabel" style="font-size:12px; color:#403a2c; max-width:150px; overflow:auto">Selected</p>
+                    <div>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color:crimson" id="DeleteCategory">🗑️</button>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color: cadetblue" id="EditCategory">📝</button>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color: #7f8d46" id="AddCategory">+</button>
+                    </div>
                 </div>
                 <div id="pageContent" style="max-height: 400px; overflow: auto;">
 
@@ -137,9 +142,9 @@
         </div>
     </div>
 
-    <div class="modal" id="CategoryModal">
+    <div class="modal" style="display: none" id="AddCategoryModal">
         <div class="modal-content">
-            <form id="CategoryForm" style="display:flex; flex-direction:column; align-items:center;">
+            <form id="AddCategoryForm" style="display:flex; flex-direction:column; align-items:center;">
                 <img id="CategoryImage" style="height: 100px; width: 100px; border-radius: 5px; cursor: pointer; margin: 10px"
                      src="https://static.vecteezy.com/system/resources/previews/005/073/059/original/empty-box-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-vector.jpg" />
 
@@ -159,6 +164,28 @@
         </div>
     </div>
 
+    <div class="modal" style="display: none" id="EditCategoryModal">
+        <div class="modal-content">
+            <form id="EditCategoryForm" style="display:flex; flex-direction:column; align-items:center;">
+                <img id="EditCategoryImage" style="height: 100px; width: 100px; border-radius: 5px; cursor: pointer; margin: 10px"
+                     src="https://static.vecteezy.com/system/resources/previews/005/073/059/original/empty-box-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-vector.jpg" />
+
+                <label for="EditCategoryName">Category Name</label>
+                <input type="text" id="EditCategoryName" name="EditCategoryName" placeholder="Enter the CategoryName" required>
+                <label class="ErrorLabel" style="font-size:12px; color:crimson" id="EditNameError"></label>
+
+                <label for="EditPriorityInput">Priority</label>
+                <input type="number" id="EditPriorityInput" name="EditPriorityInput" placeholder="Enter the Priority" required>
+                <label class="ErrorLabel" style="font-size:12px; color:crimson" id="EditPriorityError"></label>
+
+                <div style="width: 250px; display:flex; justify-content:space-between">
+                    <button class="MainButton" style="width: 47%; background-color: slategrey" id="EditCancelCategory">Cancel</button>
+                    <button class="MainButton" style="width: 47%" type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>loadDOM('/partials/AvatarEditor.html')</script>
     <script>loadDOM('/partials/LoadingScreen.html')</script>
 
@@ -169,18 +196,27 @@
     <script src="/js/NavbarActions.js"></script>
 
     <script>
-
+        let mode = "edit";
         let cropper;
         const AddCategory = document.getElementById("AddCategory");
+        const DeleteCategory = document.getElementById("DeleteCategory");
+        const EditCategory = document.getElementById("EditCategory");
         const CategoryImage = document.getElementById("CategoryImage");
+        const EditCategoryImage = document.getElementById("EditCategoryImage");
         const CancelCategory = document.getElementById("CancelCategory");
-        const CategoryName = document.getElementById("CategoryName");
+        const EditCancelCategory = document.getElementById("EditCancelCategory");
         const PriorityInput = document.getElementById("PriorityInput");
-        const CategoryForm = document.getElementById("CategoryForm");
+        const EditPriorityInput = document.getElementById("EditPriorityInput");
+        const AddCategoryForm = document.getElementById("AddCategoryForm");
+        const EditCategoryForm = document.getElementById("EditCategoryForm");
         const PriorityError = document.getElementById("PriorityError");
+        const EditPriorityError = document.getElementById("EditPriorityError");
         const NameError = document.getElementById("NameError");
+        const EditNameError = document.getElementById("EditNameError");
         const AvatarEditor = document.getElementById('AvatarEditor');
         const SearchButton = document.getElementById('SearchButton');
+        const SelectedLabel = document.getElementById('SelectedLabel');
+        const EditCategoryModal = document.getElementById('EditCategoryModal');
 
         let uploadedImageURL = Avatar.src;
         AvatarPreview.src = uploadedImageURL;
@@ -200,13 +236,27 @@
 
             fetchCategories();
         });
+        
+        AddCategory.onclick = (e) => {
+            const AddCategoryModal = document.getElementById("AddCategoryModal");
+            AddCategoryModal.style.display = "block";
+            newImage = 0;
+        }
 
-        CategoryForm.onsubmit = (e) => {
+        AddCategoryForm.onsubmit = (e) => {
             e.preventDefault();
 
             clearErrors();
 
             show_loading();
+
+            if (newImage == 0) {
+                console.log("EmptyImage");
+                uploadedImage = cropImage(CategoryImage.src);
+            }
+            else {
+                uploadedImage = CategoryImage.src;
+            }
 
             const xhr = new XMLHttpRequest();
             const url = "https://goose.itstep.click/api/Categories/add";
@@ -214,7 +264,7 @@
                 title: CategoryName.value,
                 priority: PriorityInput.value,
                 urlSlug: generateSlug(CategoryName.value),
-                image: CategoryImage.src
+                image: uploadedImage
             };
 
             xhr.open("POST", url, true);
@@ -225,7 +275,7 @@
 
                         console.log("Success:", xhr.responseText);
                         const resp = xhr.responseText;
-                        CategoryModal.style.display = "none";
+                        AddCategoryModal.style.display = "none";
                         hide_loading();
                         fetchCategories();
 
@@ -242,14 +292,18 @@
             xhr.send(JSON.stringify(data));
         }
 
-        function clearErrors() {
-            NameError.textContent = "";
-            CategoryName.style.borderWidth = "1px";
-            CategoryName.style.borderColor = "#ccc";
+        CategoryImage.onclick = function (e) {
+            AvatarEditor.style.display = 'block';
+            let uploadedImageURL = CategoryImage.src;
+            AvatarPreview.src = uploadedImageURL;
 
-            PriorityError.textContent = "";
-            PriorityInput.style.borderWidth = "1px";
-            PriorityInput.style.borderColor = "#ccc";
+            if (cropper) {
+                cropper.destroy();
+            }
+            cropper = new Cropper(AvatarPreview, {
+                aspectRatio: 1,
+                viewMode: 1
+            });
         }
 
         function HandleError(Response) {
@@ -282,6 +336,181 @@
             });
         }
 
+        function clearErrors() {
+            NameError.textContent = "";
+            CategoryName.style.borderWidth = "1px";
+            CategoryName.style.borderColor = "#ccc";
+
+            PriorityError.textContent = "";
+            PriorityInput.style.borderWidth = "1px";
+            PriorityInput.style.borderColor = "#ccc";
+        }
+
+        CancelCategory.onclick = (e) => {
+            clearCategoryFields();
+            AddCategoryModal.style.display = "none";
+        }
+
+        function clearCategoryFields() {
+            CategoryName.innerText = "";
+            PriorityInput.innerText = "";
+        }
+
+        DeleteCategory.onclick = (e) => {
+            let answer = confirm(`Are you sure you want to delete ${SelectedLabel.innerText}?`);
+
+            if (answer) {
+                Remove(SelectedCategory);
+            }
+        }
+
+
+        EditCategory.onclick = async (e) => {
+            e.preventDefault();
+            show_loading();
+            try {
+                const response = await axios.get(`https://goose.itstep.click/api/Categories/get/${SelectedCategory}`, {
+                    headers: {
+                        'Accept': '*/*'
+                    }
+                });
+                const { data } = response;
+                console.log("server result", data);
+                const { id, title, urlSlug, priority, image } = data;
+                EditCategoryImage.src = `https://goose.itstep.click/images/200_${image}`;
+                EditPriorityInput.value = priority;
+                EditCategoryName.value = title;
+
+                EditCategoryModal.style.display = "block";
+
+                newImage = 0;
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+            hide_loading();
+        }
+
+        EditCategoryForm.onsubmit = (e) => {
+            e.preventDefault();
+
+            clearEditErrors();
+
+            show_loading();
+
+            let uploadedImage = '';
+
+            if (newImage == 0) {
+                uploadedImage = cropImage(EditCategoryImage.src);
+            }
+            else {
+                uploadedImage = EditCategoryImage.src;
+            }
+
+            console.log(uploadedImage);
+
+            const xhr = new XMLHttpRequest();
+            const url = "https://goose.itstep.click/api/Categories/edit";
+            const data = {
+                id: SelectedCategory,
+                title: EditCategoryName.value,
+                priority: EditPriorityInput.value,
+                urlSlug: generateSlug(EditCategoryName.value),
+                image: uploadedImage
+            };
+
+            xhr.open("PUT", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                console.log("Changes Saved")
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+
+                        console.log("Success:", xhr.responseText);
+                        const resp = xhr.responseText;
+                        EditCategoryModal.style.display = "none";
+                        hide_loading();
+                        fetchCategories();
+
+                    } else if (xhr.status === 400) {
+                        hide_loading();
+                        HandleEditError(xhr.responseText);
+                    }
+                }
+            };
+
+            // Send request
+            xhr.send(JSON.stringify(data));
+        }
+
+        let newImage = 0;
+
+        EditCategoryImage.onclick = function (e) {
+            AvatarPreview.src = uploadedImageURL;
+            AvatarEditor.style.display = 'block';
+
+            if (cropper) {
+                cropper.destroy();
+            }
+            cropper = new Cropper(AvatarPreview, {
+                aspectRatio: 1,
+                viewMode: 1
+            });
+        }
+
+        function HandleEditError(Response) {
+            const errorResponse = JSON.parse(Response);
+            const errors = errorResponse.errors;
+
+            try {
+                Object.keys(errors).forEach(field => {
+                    const fieldErrors = errors[field];
+                    let errorLabel;
+                    let errorInput;
+                    if (field == "urlSlug") {
+                        errorLabel = EditNameError;
+                        EditNameError.innerText = "Generated Url Slug Error (based on the title): ";
+                        errorInput = EditCategoryName;
+                    }
+                    else if (field == "title") {
+                        errorLabel = EditNameError;
+                        errorInput = EditCategoryName;
+                    }
+                    else if (field == "firstName") {
+                        errorLabel = EditPriorityError;
+                        errorInput = EditPriorityInput;
+                    }
+                    fieldErrors.forEach(message => {
+                        errorLabel.textContent += message + "; ";
+                        errorInput.style.borderWidth = "5px";
+                        errorInput.style.borderColor = "red";
+                    });
+                });
+            }
+            catch {
+                console.error("Error:", Response);
+            }
+        }
+
+        function clearEditErrors() {
+            EditNameError.textContent = "";
+            EditCategoryName.style.borderWidth = "1px";
+            EditCategoryName.style.borderColor = "#ccc";
+
+            EditPriorityError.textContent = "";
+            EditPriorityInput.style.borderWidth = "1px";
+            EditPriorityInput.style.borderColor = "#ccc";
+        }
+
+        EditCancelCategory.onclick = (e) => {
+            clearEditCategoryFields();
+            EditCategoryModal.style.display = "none";
+        }
+
+        function clearEditCategoryFields() {
+            EditCategoryName.value = "";
+            EditPriorityInput.value = "";
+        }
+
         function generateSlug(text) {
             text = text.toLowerCase();
 
@@ -299,19 +528,46 @@
             return text;
         }
 
-        CancelCategory.onclick = (e) => {
-            clearCategoryFields();
-            CategoryModal.style.display = "none";
+        ConfirmEditor.onclick = function (e) {
+            if (cropper) {
+                var base64 = cropper.getCroppedCanvas().toDataURL();
+
+                if (AddCategoryModal.style.display != "none") {
+                    CategoryImage.src = base64;
+                }
+                else {
+                    EditCategoryImage.src = base64;
+                }
+                newImage = 1;
+            }
+            AvatarEditor.style.display = "none";
         }
 
-        function clearCategoryFields() {
-            CategoryName.innerText = "";
-            PriorityInput.innerText = "";
-        }
+        function cropImage() {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
 
-        AddCategory.onclick = (e) => {
-            const CategoryModal = document.getElementById("CategoryModal");
-            CategoryModal.style.display = "block";
+            var image = document.getElementById('EditCategoryImage');
+
+            if (image && image.src) {
+                image.crossOrigin = 'Anonymous';
+
+                image.onload = function () {
+                    var cropX = 50;
+                    var cropY = 50;
+                    var cropWidth = 200;
+                    var cropHeight = 200;
+
+                    canvas.width = cropWidth;
+                    canvas.height = cropHeight;
+
+                    ctx.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+                    var base64 = canvas.toDataURL('image/png');
+
+                    return base64;
+                };
+            }
         }
 
         let search = {
@@ -339,24 +595,32 @@
                 totalPages = pages;
                 const listCategories = document.getElementById("pageContent");
                 listCategories.innerHTML = "";
+                ChooseCategory(1, categories[0].title);
                 categories.forEach(item => {
                     listCategories.innerHTML += `
-                                                    <div class="CategoryDisplay">
-                                                        <img src="https://goose.itstep.click/images/200_${item.image}" alt="Category">
-                                                        <div style="margin: 0px 0px 0px 10px">
-                                                            <h3 >${item.title}<h3>
-                                                            <p>Slug: ${item.urlSlug}</p>
-                                                            <p>Priority: ${item.priority}</p>
+                                                        <div class="CategoryDisplay" onclick="ChooseCategory(${item.id}, '${item.title}')">
+                                                            <img src="https://goose.itstep.click/images/200_${item.image}" alt="Category">
+                                                            <div style="margin: 0px 0px 0px 10px">
+                                                                <h3 >${item.title}<h3>
+                                                                <p>Slug: ${item.urlSlug}</p>
+                                                                <p>Priority: ${item.priority}</p>
+                                                            </div>
                                                         </div>
-                                                        <button style="margin: auto 0px auto auto" onclick="Remove(${item.id})" class="NegativeButton">Remove</button>
-                                                    </div>
-                                                    `;
+                                                        `;
+                    //                                                        <button style="margin: auto 0px auto auto" onclick="Remove(${item.id})" class="NegativeButton">Remove</button>
                 });
                 updatePagination();
             } catch (error) {
                 console.error('Error fetching categories:', error);
             }
             hide_loading();
+        }
+
+        let SelectedCategory = 1;
+        function ChooseCategory(id, name) {
+            SelectedCategory = id;
+            console.log(SelectedCategory, name);
+            SelectedLabel.innerText = name;
         }
 
         async function Remove(id) {
@@ -380,35 +644,16 @@
             }
         }
 
-        CategoryImage.onclick = function (e) {
-            AvatarEditor.style.display = 'block';
-            let uploadedImageURL = CategoryImage.src;
-            AvatarPreview.src = uploadedImageURL;
-
-            if (cropper) {
-                cropper.destroy();
-            }
-            cropper = new Cropper(AvatarPreview, {
-                aspectRatio: 1,
-                viewMode: 1
-            });
-        }
-
         window.onclick = function (event) {
             if (event.target == AvatarEditor) {
                 AvatarEditor.style.display = "none";
             }
-            if (event.target == CategoryModal) {
-                CategoryModal.style.display = "none";
+            if (event.target == AddCategoryModal) {
+                AddCategoryModal.style.display = "none";
             }
-        }
-
-        ConfirmEditor.onclick = function (e) {
-            if (cropper) {
-                var base64 = cropper.getCroppedCanvas().toDataURL();
-                CategoryImage.src = base64;
+            if (event.target == EditCategoryModal) {
+                EditCategoryModal.style.display = "none";
             }
-            AvatarEditor.style.display = "none";
         }
 
         function prevPage() {
