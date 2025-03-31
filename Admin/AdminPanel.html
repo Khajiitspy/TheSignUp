@@ -390,7 +390,10 @@
 
 
         EditCategory.onclick = async (e) => {
-            e.preventDefault();
+            await OpenEditCategory();
+        }
+
+        async function OpenEditCategory() {
             show_loading();
             try {
                 const response = await axios.get(`https://goose.itstep.click/api/Categories/get/${SelectedCategory}`, {
@@ -407,10 +410,22 @@
 
                 EditCategoryModal.style.display = "block";
 
+                let EditID = {
+                    Edit: SelectedCategory
+                }
+
+                search = { ...search, ...EditID, page: 1 };
+                search = Object.fromEntries(
+                    Object.entries(search).filter(([_, value]) => value !== null && value !== undefined && value !== "")
+                );
+                const query = Qs.stringify(search);
+                history.pushState(null, null, `?${query}`);
+
                 newImage = 0;
             } catch (error) {
                 console.error('Error fetching categories:', error);
             }
+
             hide_loading();
         }
 
@@ -469,7 +484,7 @@
         let newImage = 0;
 
         EditCategoryImage.onclick = function (e) {
-            AvatarPreview.src = uploadedImageURL;
+            AvatarPreview.src = EditCategoryImage.src;
             AvatarEditor.style.display = 'block';
 
             if (cropper) {
@@ -708,6 +723,12 @@
             console.log(searchParams.title);
             document.getElementById('title').value = searchParams.title;
             document.getElementById('priority').value = searchParams.priority;
+
+            let Edit = new URLSearchParams(window.location.search).get('Edit') || '';
+            if (Edit != '') {
+                SelectedCategory = Edit;
+                OpenEditCategory();
+            }
 
             search = {
                 ...search, ...searchParams
