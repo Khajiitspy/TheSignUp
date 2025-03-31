@@ -7,6 +7,7 @@
     <script src="/js/site.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.14.0/qs.min.js" integrity="sha512-6yLIYbXqyvjSDYNO1pgBRjwWPBw66kMOb+sHqrvn457+iJiret0PeHzUlpLKHH0fYzX9bxGtPDqQ84xKrhEYSQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slugify@1.6.0/slugify.min.js"></script>
     <link href="/css/cropper.min.css" rel="stylesheet" />
     <title>Admin Panel</title>
 
@@ -60,7 +61,7 @@
         .SearchBar {
             display: flex;
             align-items: center;
-            flex-flow:column;
+            flex-flow: column;
             margin: 0px;
             padding: 10px;
         }
@@ -98,7 +99,6 @@
                     background-color: darkgoldenrod;
                     border-color: #4d3718;
                 }
-
     </style>
 </head>
 <body>
@@ -183,6 +183,16 @@
                     <button class="MainButton" style="width: 47%" type="submit">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="modal" id="ConfirmModal">
+        <div class="modal-content" style="">
+            <p style="" id="Question"></p>
+            <div style="display: flex; justify-content:space-evenly;">
+                <button id="Decline" class="MainButton" style="margin: 0px 20px 0px 0px">No</button>
+                <button id="Allow" class="MainButton" style="margin: 0px 0px 0px 20px">Yes</button>
+            </div>
         </div>
     </div>
 
@@ -357,11 +367,25 @@
         }
 
         DeleteCategory.onclick = (e) => {
-            let answer = confirm(`Are you sure you want to delete ${SelectedLabel.innerText}?`);
+            const ConfirmModal = document.getElementById('ConfirmModal');
+            const Question = document.getElementById('Question');
+            Question.innerText = `Are you sure you want to delete ${SelectedLabel.innerText}?`;
+            ConfirmModal.style.display = "block";
+        }
 
-            if (answer) {
-                Remove(SelectedCategory);
-            }
+        const Allow = document.getElementById('Allow');
+        const Decline = document.getElementById('Decline');
+
+        Allow.onclick = (e) => {
+            Remove(SelectedCategory);
+
+            const ConfirmModal = document.getElementById('ConfirmModal');
+            ConfirmModal.style.display = "none";
+        }
+
+        Decline.onclick = (e) => {
+            const ConfirmModal = document.getElementById('ConfirmModal');
+            ConfirmModal.style.display = "none";
         }
 
 
@@ -512,20 +536,12 @@
         }
 
         function generateSlug(text) {
-            text = text.toLowerCase();
 
-            text = text.replace(/[^a-z0-9 -]/g, '');
+            let slug = slugify(text);
+            slug = slug.toLowerCase();
+            slug = slug.replace(/[@#$']/g, '');
 
-            text = text.replace(/\s+/g, '-');
-
-            text = text.replace(/-+/g, '-');
-
-            const maxLength = 50;
-            if (text.length > maxLength) {
-                text = text.substr(0, maxLength);
-            }
-
-            return text;
+            return slug;
         }
 
         ConfirmEditor.onclick = function (e) {
@@ -607,7 +623,6 @@
                                                             </div>
                                                         </div>
                                                         `;
-                    //                                                        <button style="margin: auto 0px auto auto" onclick="Remove(${item.id})" class="NegativeButton">Remove</button>
                 });
                 updatePagination();
             } catch (error) {
