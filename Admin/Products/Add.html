@@ -109,35 +109,30 @@
             const images = ImageCollection.getElementsByTagName('img');
             let IDs = [];
 
+            //Тут ми завантажуємо список фото, які нам потрібно, щоб були на сервері
+
             for (let i = 0; i < images.length; i++) {
                 /*                await uploadImage(images[i]);*/
-                const xhr = new XMLHttpRequest();
-                const url = "https://goose.itstep.click/api/Products/upload";
+
                 console.log(images[i].src)
                 const data = {
                     image: images[i].src
                 };
-
-                xhr.open("POST", url, true);
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            const Response = JSON.parse(xhr.responseText);
-                            IDs.push(Response["id"]);
-                            console.log(Response);
-                        } else {
-                            console.error("Error:", xhr.status, xhr.responseText);
-                            return;
-                        }
-                    }
-                };
-
-                // Send request
-                xhr.send(JSON.stringify(data));
+                try {
+                    const resp = await axios.post('https://goose.itstep.click/api/Products/upload', data);
+                    const {id, name} = resp.data;
+                    IDs.push(id);
+                    console.log(resp);
+                }
+                catch (error)
+                {
+                    console.error("Upload image error", error);
+                }
             }
 
-            console.log(IDs);
+            console.log(IDs); //тут є баг Console.log - від всирівно виводить правильні дані, але не вірно.
+            //Цей код має працювати лиш тоді, коли усі фото уже на сервері,
+            //бо інакше масив IDs - є пустий і ми фото не відправляємо
 
             const xhr = new XMLHttpRequest();
             const url = "https://goose.itstep.click/api/Products/add";
@@ -147,7 +142,7 @@
                 categoryId: document.getElementById('Category').value,
                 price: document.getElementById("PriceInput").value,
                 description: tinymce.activeEditor.getContent(),
-                ids: IDs
+                ids: IDs // тут пустий масив - це 100% на сервер фото не підуть
             };
 
             console.log(data);
@@ -168,6 +163,9 @@
 
             // Send request
             xhr.send(JSON.stringify(data));
+
+
+
             
         });
 
