@@ -100,6 +100,11 @@
 
         });
 
+        let CancelAdd = document.getElementById("CancelAdd");
+        CancelAdd.onclick = (e) => {
+            location.href = "/Admin/AdminPanel_Products.html";
+        }
+
         let Form = document.getElementById("AddProductForm");
         document.getElementById('AddProductForm').addEventListener('submit', async function (event) {
             event.preventDefault();
@@ -169,30 +174,6 @@
             
         });
 
-        //async function uploadImage(image) {
-        //    const xhr = new XMLHttpRequest();
-        //    const url = "https://goose.itstep.click/api/Products/upload";
-        //    const data = {
-        //        image: cropImage(image)
-        //    };
-
-        //    xhr.open("POST", url, true);
-        //    xhr.setRequestHeader("Content-Type", "application/json");
-        //    xhr.onreadystatechange = function () {
-        //        if (xhr.readyState === 4) {
-        //            if (xhr.status >= 200 && xhr.status < 300) {
-        //                const Response = JSON.parse(xhr.responseText);
-        //                IDs.push(Response["id"]);
-        //            } else {
-        //                console.error("Error:", xhr.status, xhr.responseText);
-        //            }
-        //        }
-        //    };
-
-        //    // Send request
-        //    xhr.send(JSON.stringify(data));
-        //}
-
         function HandleError(Response) {
             const errorResponse = JSON.parse(Response);
             const errors = errorResponse.errors;
@@ -234,132 +215,86 @@
 
         let ImageCollection = document.getElementById("ImageCollection");
 
-        let cropper;
         document.getElementById('ImageOpener').addEventListener('change', function (event) {
+
             const { target } = event;
             const { files } = target;
-            const file = files[0];
-            if (file) {
-                if (/^image\/\w+/.test(file.type)) {
+            const imageCollection = document.getElementById('ImageCollection');
 
-                    AvatarPreview.src = URL.createObjectURL(file);
-                    AvatarEditor.style.display = 'block';
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file) {
+                    const reader = new FileReader();
 
-                    if (cropper) {
-                        cropper.destroy();
-                    }
+                    reader.onload = function (e) {
+                        imageToBase64(e.target.result, function (base64) {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.style.position = 'relative';
+                            imgContainer.style.marginRight = '10px';
 
-                    cropper = new Cropper(AvatarPreview, {
-                        aspectRatio: 1,
-                        viewMode: 1
-                    });
-                }
-                else {
-                    window.alert('Please choose an image file.');
+                            const img = document.createElement('img');
+                            img.src = base64;
+                            img.style.width = '200px';
+                            img.style.height = '200px';
+                            document.body.appendChild(img);
+
+                            const removeButton = document.createElement('button');
+                            removeButton.textContent = 'X';
+                            removeButton.style.position = 'absolute';
+                            removeButton.style.top = '0';
+                            removeButton.style.right = '0';
+                            removeButton.style.background = 'red';
+                            removeButton.style.color = 'white';
+                            removeButton.style.border = 'none';
+                            removeButton.style.borderRadius = '50%';
+                            removeButton.style.width = '20px';
+                            removeButton.style.height = '20px';
+                            removeButton.style.cursor = 'pointer';
+                            removeButton.style.display = 'none';
+
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(removeButton);
+                            imageCollection.appendChild(imgContainer);
+
+                            imgContainer.addEventListener('mouseover', function () {
+                                removeButton.style.display = 'block';
+                            });
+
+                            imgContainer.addEventListener('mouseout', function () {
+                                removeButton.style.display = 'none';
+                            });
+
+                            removeButton.addEventListener('click', function () {
+                                imageCollection.removeChild(imgContainer);
+                            });
+                        });
+                    };
+
+                    reader.readAsDataURL(file);
                 }
             }
         });
 
-        ConfirmEditor.onclick = function (e) {
-            if (cropper) {
-                var base64 = cropper.getCroppedCanvas().toDataURL();
+        function imageToBase64(imageUrl, callback) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // This allows cross-origin image loading
 
-                const imageCollection = document.getElementById('ImageCollection');
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
 
-                const imgContainer = document.createElement('div');
-                imgContainer.style.position = 'relative';
-                imgContainer.style.marginRight = '10px';
+                const base64String = canvas.toDataURL("image/png"); // Converts to base64 (PNG format)
+                callback(base64String); // Return the base64 string using the callback
+            };
 
-                const img = document.createElement('img');
-                img.src = base64;
-                img.style.width = '200px';
-                img.style.height = '200px';
+            img.onerror = function (error) {
+                console.error("Error loading image", error);
+            };
 
-                const removeButton = document.createElement('button');
-                removeButton.textContent = 'X';
-                removeButton.style.position = 'absolute';
-                removeButton.style.top = '0';
-                removeButton.style.right = '0';
-                removeButton.style.background = 'red';
-                removeButton.style.color = 'white';
-                removeButton.style.border = 'none';
-                removeButton.style.borderRadius = '50%';
-                removeButton.style.width = '20px';
-                removeButton.style.height = '20px';
-                removeButton.style.cursor = 'pointer';
-                removeButton.style.display = 'none';
-
-                imgContainer.appendChild(img);
-                imgContainer.appendChild(removeButton);
-                imageCollection.appendChild(imgContainer);
-
-                imgContainer.addEventListener('mouseover', function () {
-                    removeButton.style.display = 'block';
-                });
-
-                imgContainer.addEventListener('mouseout', function () {
-                    removeButton.style.display = 'none';
-                });
-
-                removeButton.addEventListener('click', function () {
-                    imageCollection.removeChild(imgContainer);
-                });
-            }
-            AvatarEditor.style.display = "none";
-        }
-
-        //function cropImage(imageSrc) {
-        //    var img = new Image();
-        //    img.crossOrigin = 'Anonymous';
-
-        //    img.onload = function () {
-        //        var canvas = document.createElement('canvas');
-        //        var ctx = canvas.getContext('2d');
-
-        //        var cropX = 50;
-        //        var cropY = 50;
-        //        var cropWidth = 200;
-        //        var cropHeight = 200;
-
-        //        canvas.width = cropWidth;
-        //        canvas.height = cropHeight;
-
-        //        ctx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-        //        var base64 = canvas.toDataURL('image/png');
-        //        return base64;
-        //    };
-
-        //    img.onerror = function () {
-        //        console.error('Error loading image');
-        //    };
-
-        //    img.src = imageSrc;
-        //}
-
-        function cropImage(image) {
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-
-            if (image && image.src) {
-                image.crossOrigin = 'Anonymous';
-
-                image.onload = function () {
-                    var cropX = 50;
-                    var cropY = 50;
-                    var cropWidth = 200;
-                    var cropHeight = 200;
-
-                    canvas.width = cropWidth;
-                    canvas.height = cropHeight;
-
-                    ctx.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-                    var base64 = canvas.toDataURL('image/png');
-
-                    return base64;
-                };
-            }
+            img.src = imageUrl;
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
