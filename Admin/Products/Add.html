@@ -1,0 +1,391 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link href="/css/StyleSheet.css" rel="stylesheet" />
+    <script src="/js/site.js"></script>
+    <link href="/css/cropper.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.tiny.cloud/1/eo1l2hcz63gv16hu7v7u5zmv1odiufbf17b448zt3aghhh43/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+    <title>Add Product</title>
+    <style>
+    </style>
+</head>
+<body>
+
+    <script>loadDOM('/partials/Navigation.html')</script>
+
+    <div style="display: flex;">
+        <script>loadDOM('/partials/AdminPanelMenu.html')</script>
+        <div class="container" style="max-width: 800px; max-height: 530px">
+            <form id="AddProductForm" style=" display:flex; flex-direction:column; align-items:center;">
+                <h1>Add Product</h1>
+
+                <div style="display:flex; flex-direction:column; align-items:center; max-height: 380px; width: 650px; overflow:auto">
+                    <label for="ProductName">Product Name</label>
+                    <input type="text" id="ProductName" name="ProductName" placeholder="Enter the product name" style="text-align:center; width: 50%" required>
+                    <label class="ErrorLabel" style="font-size:12px; color:crimson" id="NameError"></label>
+
+                    <div style="width: 100%; display:flex; justify-content:space-evenly; margin-bottom: 20px">
+
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <label for="Category">Category</label>
+                            <select id="Category" name="Category" required>
+                                <option value="0">Select Category</option>
+                            </select>
+                            <label class="ErrorLabel" style="font-size:12px; color:crimson" id="CategoryError"></label>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <label for="PriorityInput">Priority</label>
+                            <input type="number" id="PriorityInput" name="PriorityInput" placeholder="Enter the Priority" required>
+                            <label class="ErrorLabel" style="font-size:12px; color:crimson" id="PriorityError"></label>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <label for="PriceInput">Price</label>
+                            <input type="number" id="PriceInput" name="PriceInput" placeholder="Enter the Price" required>
+                            <label class="ErrorLabel" style="font-size:12px; color:crimson" id="PriceError"></label>
+                        </div>
+                    </div>
+
+                    <div style="max-width: 600px">
+                        <textarea id="Description">Describe your product</textarea>
+                    </div>
+
+                    <label style="margin-top:20px">Images</label>
+                    <div>
+                        <input type="file" id="ImageOpener" name="ImageOpener" accept="image/*" multiple />
+                    </div>
+                    <div id="ImageCollection" style="width: 600px; min-width: 600px; min-height: 205px; display:flex; overflow-x: auto; margin-top: 10px; border: 1px solid #808080; border-radius: 5px; padding:5px">
+                    
+                    </div>
+                </div>
+
+                <div style="width: 100%; display:flex; justify-content:space-between; margin-top: 20px;">
+                    <button class="MainButton" style="width: 47%; background-color: slategrey" id="CancelAdd">Cancel</button>
+                    <button class="MainButton" style="width: 47%" type="submit">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>loadDOM('/partials/AvatarEditor.html')</script>
+    <script>loadDOM('/partials/LoadingScreen.html')</script>
+
+
+    <script src="/js/cropper.min.js"></script>
+    <script src="/js/AvatarEditor.js"></script>
+
+    <script src="/js/NavbarActions.js"></script>
+
+    <script>
+        tinymce.init({
+            selector: '#Description',
+
+            plugins: [
+                'advlist', 'autolink', 'link', 'image', 'lists', 'charmap', 'preview', 'anchor', 'pagebreak',
+                'searchreplace', 'wordcount', 'visualblocks', 'visualchars', 'code', 'fullscreen', 'insertdatetime',
+                'media', 'table', 'emoticons', 'help'
+            ],
+            toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | ' +
+                'bullist numlist outdent indent | link image | print preview media fullscreen | ' +
+                'forecolor backcolor emoticons | help',
+            menu: {
+                favs: { title: 'My Favorites', items: 'code visualaid | searchreplace | emoticons' }
+            },
+            menubar: 'favs file edit view insert format tools table help',
+
+
+        });
+
+        let Form = document.getElementById("AddProductForm");
+        document.getElementById('AddProductForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            show_loading();
+
+            const images = ImageCollection.getElementsByTagName('img');
+            let IDs = [];
+
+            for (let i = 0; i < images.length; i++) {
+                /*                await uploadImage(images[i]);*/
+                const xhr = new XMLHttpRequest();
+                const url = "https://goose.itstep.click/api/Products/upload";
+                console.log(images[i].src)
+                const data = {
+                    image: images[i].src
+                };
+
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            const Response = JSON.parse(xhr.responseText);
+                            IDs.push(Response["id"]);
+                            console.log(Response);
+                        } else {
+                            console.error("Error:", xhr.status, xhr.responseText);
+                            return;
+                        }
+                    }
+                };
+
+                // Send request
+                xhr.send(JSON.stringify(data));
+            }
+
+            console.log(IDs);
+
+            const xhr = new XMLHttpRequest();
+            const url = "https://goose.itstep.click/api/Products/add";
+            const data = {
+                name: document.getElementById("ProductName").value,
+                priority: document.getElementById("PriorityInput").value,
+                categoryId: document.getElementById('Category').value,
+                price: document.getElementById("PriceInput").value,
+                description: tinymce.activeEditor.getContent(),
+                ids: IDs
+            };
+
+            console.log(data);
+
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        hide_loading();
+                        console.log("Success:", xhr.responseText);
+                    } else {
+                        hide_loading();
+                        HandleError(xhr.responseText)
+                    }
+                }
+            };
+
+            // Send request
+            xhr.send(JSON.stringify(data));
+            
+        });
+
+        //async function uploadImage(image) {
+        //    const xhr = new XMLHttpRequest();
+        //    const url = "https://goose.itstep.click/api/Products/upload";
+        //    const data = {
+        //        image: cropImage(image)
+        //    };
+
+        //    xhr.open("POST", url, true);
+        //    xhr.setRequestHeader("Content-Type", "application/json");
+        //    xhr.onreadystatechange = function () {
+        //        if (xhr.readyState === 4) {
+        //            if (xhr.status >= 200 && xhr.status < 300) {
+        //                const Response = JSON.parse(xhr.responseText);
+        //                IDs.push(Response["id"]);
+        //            } else {
+        //                console.error("Error:", xhr.status, xhr.responseText);
+        //            }
+        //        }
+        //    };
+
+        //    // Send request
+        //    xhr.send(JSON.stringify(data));
+        //}
+
+        function HandleError(Response) {
+            const errorResponse = JSON.parse(Response);
+            const errors = errorResponse.errors;
+
+            try {
+                Object.keys(errors).forEach(field => {
+                    const fieldErrors = errors[field];
+                    let errorLabel;
+                    let errorInput;
+                    if (field == "name") {
+                        errorLabel = document.getElementById("NameError");
+                        errorInput = document.getElementById("ProductName");
+                    }
+                    else if (field == "priority") {
+                        errorLabel = document.getElementById("PriorityError");
+                        errorInput = document.getElementById("PriorityInput");
+                    }
+                    else if (field == "price") {
+                        errorLabel = document.getElementById("PriceError");
+                        errorInput = document.getElementById("PriceInput");
+                    }
+                    else if (field == "categoryId") {
+                        errorLabel = document.getElementById("CategoryError");
+                        errorInput = document.getElementById("Category");
+                    }
+                    fieldErrors.forEach(message => {
+                        errorLabel.textContent += message + "; ";
+                        errorInput.style.borderWidth = "5px";
+                        errorInput.style.borderColor = "red";
+                    });
+                });
+            }
+            catch {
+                console.error("Error:", Response);
+            }
+        }
+
+        let IDs = [];
+
+        let ImageCollection = document.getElementById("ImageCollection");
+
+        let cropper;
+        document.getElementById('ImageOpener').addEventListener('change', function (event) {
+            const { target } = event;
+            const { files } = target;
+            const file = files[0];
+            if (file) {
+                if (/^image\/\w+/.test(file.type)) {
+
+                    AvatarPreview.src = URL.createObjectURL(file);
+                    AvatarEditor.style.display = 'block';
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    cropper = new Cropper(AvatarPreview, {
+                        aspectRatio: 1,
+                        viewMode: 1
+                    });
+                }
+                else {
+                    window.alert('Please choose an image file.');
+                }
+            }
+        });
+
+        ConfirmEditor.onclick = function (e) {
+            if (cropper) {
+                var base64 = cropper.getCroppedCanvas().toDataURL();
+
+                const imageCollection = document.getElementById('ImageCollection');
+
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                imgContainer.style.marginRight = '10px';
+
+                const img = document.createElement('img');
+                img.src = base64;
+                img.style.width = '200px';
+                img.style.height = '200px';
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'X';
+                removeButton.style.position = 'absolute';
+                removeButton.style.top = '0';
+                removeButton.style.right = '0';
+                removeButton.style.background = 'red';
+                removeButton.style.color = 'white';
+                removeButton.style.border = 'none';
+                removeButton.style.borderRadius = '50%';
+                removeButton.style.width = '20px';
+                removeButton.style.height = '20px';
+                removeButton.style.cursor = 'pointer';
+                removeButton.style.display = 'none';
+
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(removeButton);
+                imageCollection.appendChild(imgContainer);
+
+                imgContainer.addEventListener('mouseover', function () {
+                    removeButton.style.display = 'block';
+                });
+
+                imgContainer.addEventListener('mouseout', function () {
+                    removeButton.style.display = 'none';
+                });
+
+                removeButton.addEventListener('click', function () {
+                    imageCollection.removeChild(imgContainer);
+                });
+            }
+            AvatarEditor.style.display = "none";
+        }
+
+        //function cropImage(imageSrc) {
+        //    var img = new Image();
+        //    img.crossOrigin = 'Anonymous';
+
+        //    img.onload = function () {
+        //        var canvas = document.createElement('canvas');
+        //        var ctx = canvas.getContext('2d');
+
+        //        var cropX = 50;
+        //        var cropY = 50;
+        //        var cropWidth = 200;
+        //        var cropHeight = 200;
+
+        //        canvas.width = cropWidth;
+        //        canvas.height = cropHeight;
+
+        //        ctx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+        //        var base64 = canvas.toDataURL('image/png');
+        //        return base64;
+        //    };
+
+        //    img.onerror = function () {
+        //        console.error('Error loading image');
+        //    };
+
+        //    img.src = imageSrc;
+        //}
+
+        function cropImage(image) {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+
+            if (image && image.src) {
+                image.crossOrigin = 'Anonymous';
+
+                image.onload = function () {
+                    var cropX = 50;
+                    var cropY = 50;
+                    var cropWidth = 200;
+                    var cropHeight = 200;
+
+                    canvas.width = cropWidth;
+                    canvas.height = cropHeight;
+
+                    ctx.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+                    var base64 = canvas.toDataURL('image/png');
+
+                    return base64;
+                };
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            console.log("Load Dom");
+            try {
+                var list = await axios.get("https://goose.itstep.click/api/Categories/list");
+                const { data } = list;
+
+                // Отримуємо елемент select
+                const selectElement = document.getElementById('Category');
+
+                // Для кожної категорії додаємо опцію в селект
+                data.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id; // Значення опції - id категорії
+                    option.textContent = category.title; // Текст опції - назва категорії
+                    selectElement.appendChild(option); // Додаємо опцію до select
+                });
+                console.log("list categories", list);
+            }
+            catch (error) {
+                console.error("error load category", error);
+            }
+        });
+    </script>
+</body>
+</html>

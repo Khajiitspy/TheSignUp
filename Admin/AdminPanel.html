@@ -45,18 +45,6 @@
                 padding: 0px;
             }
 
-        .CircleButton {
-            font-weight: bold;
-            color: ghostwhite;
-            background-color: #4d3718;
-            border-radius: 50%;
-            font-size: 20px;
-        }
-
-            .CircleButton:hover {
-                background-color: darkgoldenrod;
-                border-color: #4d3718;
-            }
 
         .SearchBar {
             display: flex;
@@ -262,7 +250,7 @@
 
             if (newImage == 0) {
                 console.log("EmptyImage");
-                uploadedImage = cropImage(CategoryImage.src);
+                uploadedImage = cropImage(CategoryImage);
             }
             else {
                 uploadedImage = CategoryImage.src;
@@ -439,7 +427,7 @@
             let uploadedImage = '';
 
             if (newImage == 0) {
-                uploadedImage = cropImage(EditCategoryImage.src);
+                uploadedImage = cropImage(EditCategoryImage);
             }
             else {
                 uploadedImage = EditCategoryImage.src;
@@ -574,11 +562,9 @@
             AvatarEditor.style.display = "none";
         }
 
-        function cropImage() {
+        function cropImage(image) {
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
-
-            var image = document.getElementById('EditCategoryImage');
 
             if (image && image.src) {
                 image.crossOrigin = 'Anonymous';

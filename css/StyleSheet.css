@@ -99,9 +99,8 @@ h1 {
     align-items: center;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"] {
+input,
+select {
     width: 100%;
     padding: 12px;
     margin: 8px 0;
@@ -167,3 +166,16 @@ input[type="password"] {
 .NegativeButton:hover{
     background-color: #ed6f6f;
 }
+
+.CircleButton {
+    font-weight: bold;
+    color: ghostwhite;
+    background-color: #4d3718;
+    border-radius: 50%;
+    font-size: 20px;
+}
+
+    .CircleButton:hover {
+        background-color: darkgoldenrod;
+        border-color: #4d3718;
+    }
