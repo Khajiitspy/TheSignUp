@@ -4,23 +4,85 @@
     <meta charset="utf-8" />
     <link href="/css/StyleSheet.css" rel="stylesheet" />
     <script src="/js/site.js"></script>
-    <!--<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.14.0/qs.min.js" integrity="sha512-6yLIYbXqyvjSDYNO1pgBRjwWPBw66kMOb+sHqrvn457+iJiret0PeHzUlpLKHH0fYzX9bxGtPDqQ84xKrhEYSQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/slugify@1.6.0/slugify.min.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/slugify@1.6.0/slugify.min.js"></script>
     <title>Products</title>
 
     <style>
-        .CircleButton {
-            font-weight: bold;
-            color: ghostwhite;
-            background-color: #4d3718;
-            border-radius: 50%;
-            font-size: 20px;
+        .SearchBar {
+            display: flex;
+            align-items: center;
+            flex-flow: column;
+            margin: 0px;
+            padding: 10px;
         }
 
-            .CircleButton:hover {
-                background-color: darkgoldenrod;
+            .SearchBar input {
+                margin: 10px 0px;
+                width: 200px;
+                padding: 5px 5px 1px 5px;
+                border: solid;
+                border-width: 0px 0px 1px 0px;
                 border-color: #4d3718;
+                border-radius: 0px;
+                font-size: 16px;
+                outline: none;
+            }
+
+                .SearchBar input:focus {
+                    border: solid;
+                    border-radius: 0px;
+                    border-width: 0px 0px 2px 0px;
+                    border-color: #4d3718;
+                }
+
+            .SearchBar button {
+                text-decoration: none;
+                padding: 0px 10px;
+                border: solid;
+                border-radius: 5px;
+                border-color: transparent;
+                border-width: 2px;
+            }
+
+                .SearchBar button:hover {
+                    color: gainsboro;
+                    background-color: darkgoldenrod;
+                    border-color: #4d3718;
+                }
+
+        .CategoryDisplay {
+            display:flex;
+            border-radius: 10px;
+            height: 200px;
+            width: 600px;
+            padding: 20px;
+            justify-content: space-between;
+        }
+
+            .CategoryDisplay:hover {
+                background-color: #f8cb9a;
+            }
+
+            .CategoryDisplay img {
+                border-radius: 5px;
+                height: 200px;
+                width: 30%;
+            }
+
+            .CategoryDisplay h3 {
+                font-size: 20px;
+                font-weight: bold;
+                margin: 0px;
+                padding: 0px;
+            }
+
+            .CategoryDisplay p {
+                font-size: 15px;
+                color: slategray;
+                margin: 0px;
+                padding: 0px;
             }
     </style>
 </head>
@@ -30,33 +92,49 @@
     <div style="display: flex;">
         <script>loadDOM('/partials/AdminPanelMenu.html')</script>
 
-        <div class="container" style="max-width: 600px; max-height: 600px">
-            <div style="display: flex; justify-content:space-between; align-items: center;">
-                <h1 id="pageHeader">Products</h1>
-                <!--<p id="SelectedLabel" style="font-size:12px; color:#403a2c; max-width:150px; overflow:auto">Selected</p>-->
-                <div>
-                    <!--<button class="CircleButton" style="height: 50px; width: 50px; background-color:crimson" id="DeleteCategory">🗑️</button>
-                    <button class="CircleButton" style="height: 50px; width: 50px; background-color: cadetblue" id="EditCategory">📝</button>-->
-                    <button class="CircleButton" style="height: 50px; width: 50px; background-color: #7f8d46" id="AddProduct">+</button>
+        <div style="display: flex; margin: auto">
+            <div class="container" style="max-width: 800px; max-height: 600px">
+
+                <!--Header-->
+                <div style="display: flex; justify-content:space-between; align-items: center;">
+                    <h1 id="pageHeader">Products</h1>
+                    <div>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color: #7f8d46" id="AddProduct">+</button>
+                    </div>
+                </div>
+
+                <!--Product View-->
+                <div id="pageContent" style="max-height: 400px; overflow: auto;">
+
+                </div>
+
+                <!--Page Navigation for pageContent-->
+                <div id="pagination-container" style="display:flex; justify-content: space-evenly; justify-items:center; align-items:center; margin: 5px 0px 0px 0px">
+                    <button onclick="prevPage()" style="height: 40px; width: 40px" class="CircleButton">&laquo;</button>
+                    <p id="page-number" style=" color: #6b4303"></p>
+                    <button onclick="nextPage()" style="height: 40px; width: 40px" class="CircleButton">&raquo;</button>
                 </div>
             </div>
-            <div id="pageContent" style="max-height: 400px; overflow: auto;">
 
+            <!--Filter Search Section-->
+            <div class="container" style="margin-left: 20px;max-height: 600px">
+                <form class="SearchBar" id="formSearch">
+                    <h1>Filters</h1>
+                    <div style="display:flex; flex-flow:column; overflow:auto; max-height: 400px; margin: 0px 0px 20px 0px">
+                        <input type="text" name="name" id="name" class="" style="" placeholder="Name" />
+                        <input type="number" name="price" id="price" class="" style="" placeholder="Price" />
+                        <input type="number" name="priority" id="priority" class="" style="" placeholder="Priority" />
+                        <select id="Category" name="Category" required>
+                            <option value="0">Select Category</option>
+                        </select>
+                    </div>
+                    <button id="SearchButton" type="submit">🔎 Search</button>
+                </form>
             </div>
-
-            <!--<div id="pagination-container" style="display:flex; justify-content: space-evenly; justify-items:center; align-items:center; margin: 5px 0px 0px 0px">
-                <button onclick="prevPage()" style="height: 40px; width: 40px" class="CircleButton">&laquo;</button>
-                <p id="page-number" style=" color: #6b4303"></p>
-                <button onclick="nextPage()" style="height: 40px; width: 40px" class="CircleButton">&raquo;</button>
-            </div>-->
         </div>
     </div>
 
     <script>loadDOM('/partials/LoadingScreen.html')</script>
-
-
-    <script src="/js/cropper.min.js"></script>
-    <script src="/js/AvatarEditor.js"></script>
 
     <script src="/js/NavbarActions.js"></script>
 
@@ -66,6 +144,154 @@
         AddProduct.onclick = (e) => {
             location.href = "/Admin/Products/Add.html";
         }
+
+        const formSearch = document.getElementById('formSearch');
+        formSearch.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(formSearch);
+            const values = {};
+
+            for (const [name, value] of formData.entries()) {
+                if (name != "Category") {
+                    values[name] = value;
+                }
+            }
+
+            Category = document.getElementById("Category").value;
+            console.log(Category);
+            if (Category != "0") {
+                values["categorySlug"] = Category;
+            }
+            else {
+                values["categorySlug"] = "";
+            }
+
+            search = { ...search, ...values, page: 1 };
+
+            fetchProducts();
+        });
+
+        let search = {
+            page: 1,
+        };
+
+        let totalPages = 0;
+
+        async function fetchProducts() {
+            show_loading();
+            try {
+                search = Object.fromEntries(
+                    Object.entries(search).filter(([name, value]) => value !== null && value !== undefined && value !== "")
+                );
+                console.log(search);
+                const query = Qs.stringify(search);
+                history.pushState(null, null, `?${query}`);
+                const response = await axios.get(`https://goose.itstep.click/api/Products/search?${query}`, {
+                    headers: {
+                        'Accept': '*/*'
+                    }
+                });
+                const { data } = response;
+                console.log("server result", data);
+                const { products, pages, total, currentPage, categoryName } = data;
+                totalPages = pages;
+                const listProducts = document.getElementById("pageContent");
+                listProducts.innerHTML = "";
+                products.forEach(item => {
+                    listProducts.innerHTML += `
+                        <div class="CategoryDisplay">
+                            <img src="https://goose.itstep.click/images/200_${item.images[0]}" alt="Cover">
+                            <div style="padding: 0px 0px 0px 10px; width: 70%; display:flex; justify-content: space-between; overflow-y: auto; max-height: 200px;">
+                                <div style="padding: 0px 0px 0px 10px; width: 50%">
+                                    <h3 >${item.name}<h3>
+                                    <h3 style="fontSize:18px; color:forestgreen">€ ${item.price}<h3>
+                                    <p>Category: ${item.categoryName}</p>
+                                    <p>Priority: ${item.priority}</p>
+                                </div>
+                                <div style="padding: 0px 0px 0px 10px; width: 50%">
+                                    <p>Description: ${item.description}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                updatePagination();
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+            hide_loading();
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            console.log("Load Dom");
+            try {
+                var list = await axios.get("https://goose.itstep.click/api/Categories/list");
+                const { data } = list;
+
+                const selectElement = document.getElementById('Category');
+
+                data.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.urlSlug;
+                    option.textContent = category.title;
+                    selectElement.appendChild(option);
+                });
+                console.log("list categories", list);
+            }
+            catch (error) {
+                console.error("error load category", error);
+            }
+        });
+
+
+        function prevPage() {
+            if (search.page > 1) {
+                search.page--;
+                updatePagination();
+                fetchProducts();
+            }
+        }
+
+        function nextPage() {
+            if (search.page < totalPages) {
+                search.page++;
+                updatePagination();
+                fetchProducts();
+            }
+        }
+
+        function updatePagination() {
+            const pageNumber = document.getElementById("page-number");
+            pageNumber.innerText = `Page ${search.page} of ${totalPages}`;
+            document.getElementById("pageContent").scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function loadUrl() {
+            let searchParams = {
+                page: new URLSearchParams(window.location.search).get('page') || 1,
+                name: new URLSearchParams(window.location.search).get('name') || '',
+                price: new URLSearchParams(window.location.search).get('price') || '',
+                priority: new URLSearchParams(window.location.search).get('priority') || '',
+                categorySlug: new URLSearchParams(window.location.search).get('categorySlug') || '',
+            };
+
+            console.log(searchParams.name);
+            document.getElementById('name').value = searchParams.name;
+            document.getElementById('price').value = searchParams.price;
+            document.getElementById('priority').value = searchParams.priority;
+
+            search = {
+                ...search, ...searchParams
+            };
+
+            fetchProducts();
+        }
+
+        loadUrl();
     </script>
 </body>
 </html>

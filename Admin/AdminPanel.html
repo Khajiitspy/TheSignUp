@@ -676,8 +676,7 @@
             if (search.page > 1) {
                 search.page--;
                 updatePagination();
-                fetchCategories();
-                updateUrl();
+                fetchCategories();\
             }
         }
 
@@ -686,7 +685,6 @@
                 search.page++;
                 updatePagination();
                 fetchCategories();
-                updateUrl();
             }
         }
 
