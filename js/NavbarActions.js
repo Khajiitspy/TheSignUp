@@ -6,7 +6,7 @@ Avatar.onclick = function (event) {
 
 function RefreshAvatar() {
     const token = localStorage.getItem("token");
-    axios.get('https://goose.itstep.click/api/Account/profile', {
+    axios.get(`${window.API_BASE_URL}/api/Account/profile`, {
         headers: {
             'accept': '*/*',
             'Authorization': `Bearer ${token}`
@@ -15,7 +15,7 @@ function RefreshAvatar() {
         .then(resp => {
             const { data } = resp;
             const { id, email, firstName, secondName, phone, photo } = data;
-            Avatar.src = `https://goose.itstep.click/images/${photo}`;
+            Avatar.src = `${window.API_BASE_URL}/images/${photo}`;
         })
         .catch(err => {
             console.log("Error", err);

@@ -136,7 +136,7 @@
                     image: images[i].src
                 };
                 try {
-                    const resp = await axios.post('https://goose.itstep.click/api/Products/upload', data);
+                    const resp = await axios.post(`${window.API_BASE_URL}/api/Products/upload`, data);
                     const {id, name} = resp.data;
                     IDs.push(id);
                     console.log(resp);
@@ -152,7 +152,7 @@
             //бо інакше масив IDs - є пустий і ми фото не відправляємо
 
             const xhr = new XMLHttpRequest();
-            const url = "https://goose.itstep.click/api/Products/add";
+            const url = `${window.API_BASE_URL}/api/Products/add`;
             const data = {
                 name: document.getElementById("ProductName").value,
                 priority: document.getElementById("PriorityInput").value,
@@ -331,7 +331,7 @@
         document.addEventListener("DOMContentLoaded", async () => {
             console.log("Load Dom");
             try {
-                var list = await axios.get("https://goose.itstep.click/api/Categories/list");
+                var list = await axios.get(`${window.API_BASE_URL}/api/Categories/list`);
                 const { data } = list;
 
                 // Отримуємо елемент select
