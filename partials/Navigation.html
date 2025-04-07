@@ -87,10 +87,12 @@
 
 
 <script>
-    //Doesn't work...
 
     const Avatar = document.getElementById('Avatar');
     const Username = document.getElementById('Username');
+
+    window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
+    console.log(window.API_BASE_URL);
 
     Avatar.onclick = function (event) {
         location.href = "/Profile.html";
