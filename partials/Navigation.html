@@ -87,10 +87,12 @@
 
 
 <script>
-    //Doesn't work...
 
     const Avatar = document.getElementById('Avatar');
     const Username = document.getElementById('Username');
+
+    window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
+    console.log(window.API_BASE_URL);
 
     Avatar.onclick = function (event) {
         location.href = "/Profile.html";
@@ -98,7 +100,7 @@
 
     function RefreshAvatar() {
         const token = localStorage.getItem("token");
-        axios.get('https://goose.itstep.click/api/Account/profile', {
+        axios.get(`${window.API_BASE_URL}/api/Account/profile`, {
             headers: {
                 'accept': '*/*',
                 'Authorization': `Bearer ${token}`
@@ -107,7 +109,7 @@
             .then(resp => {
                 const { data } = resp;
                 const { id, email, firstName, secondName, phone, photo } = data;
-                Avatar.src = `https://goose.itstep.click/images/${photo}`;
+                Avatar.src = `${window.API_BASE_URL}/images/${photo}`;
                 Username.innerText = `${firstName}`;
 
                 if (email == "novakvova@gmail.com") {

@@ -13,6 +13,11 @@
 
     <style>
     </style>
+
+    <script>
+        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
+        console.log(window.API_BASE_URL);
+    </script>
 </head>
 <body>
     <div class="container">
@@ -75,7 +80,7 @@
             clearErrors();
 
             const xhr = new XMLHttpRequest();
-            const url = "https://goose.itstep.click/api/Account/register";
+            const url = `${window.API_BASE_URL}/api/Account/register`;
 
             const data = {
                 email: email.value,
@@ -102,9 +107,6 @@
 
                     } else if (xhr.status === 400) {
                         HandleError(xhr.responseText);
-                    } else {
-                        console.error("Error:", xhr.status, xhr.responseText);
-                        showMessage("Error", "An error occurred. Please try again later.");
                     }
                 }
             };

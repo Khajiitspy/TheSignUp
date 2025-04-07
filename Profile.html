@@ -32,6 +32,9 @@
         const Email = document.getElementById("email");
         const Signout = document.getElementById("Signout");
 
+        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
+        console.log(window.API_BASE_URL);
+
         Signout.onclick = (e) => {
             location.href = "/index.html";
         }
@@ -39,7 +42,7 @@
         function RefreshProfile() {
             if (localStorage.getItem("token")) {
                 show_loading();
-                axios.get('https://goose.itstep.click/api/Account/profile', {
+                axios.get(`${window.API_BASE_URL}/api/Account/profile`, {
                     headers: {
                         'accept': '*/*',
                         'Authorization': `Bearer ${localStorage.getItem("token")}`
@@ -48,7 +51,7 @@
                     .then(resp => {
                         const { data } = resp;
                         const { id, email, firstName, secondName, phone, photo } = data;
-                        ProfileAvatar.src = `https://goose.itstep.click/images/${photo}`;
+                        ProfileAvatar.src = `${window.API_BASE_URL}/images/${photo}`;
                         ProfileUsername.innerText = `Username: ${firstName}`;
                         Email.innerText = `Email: ${email}`;
                         console.log("User profile", data);

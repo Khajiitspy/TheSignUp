@@ -36,6 +36,9 @@
         const emailError = document.getElementById("EmailError");
         const passwordError = document.getElementById("PasswordError");
 
+        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
+        console.log(window.API_BASE_URL);
+
         ToSignUp.onclick = (e) => {
             location.href = "/index.html";
         }
@@ -46,7 +49,7 @@
             clearErrors()
 
             const xhr = new XMLHttpRequest();
-            const url = "https://goose.itstep.click/api/Account/login"; //443 // Replace with your actual API URL
+            const url = `${window.API_BASE_URL}/api/Account/login`; //443 // Replace with your actual API URL
 
             // Prepare the data
             const data = {
@@ -69,12 +72,8 @@
                         localStorage.setItem("token", token);
                         location.href = "/Main.html";
 
-                    } else if (xhr.status === 400) {
-                        HandleError(xhr.responseText);
                     } else {
-                        // Other error
-                        console.error("Error:", xhr.status, xhr.responseText);
-                        showMessage("Error", "An error occurred. Please try again later.");
+                        HandleError(xhr.responseText);
                     }
                 }
             };

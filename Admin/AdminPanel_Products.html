@@ -98,7 +98,10 @@
                 <!--Header-->
                 <div style="display: flex; justify-content:space-between; align-items: center;">
                     <h1 id="pageHeader">Products</h1>
+                    <p id="SelectedLabel" style="font-size:12px; color:#403a2c; max-width:150px; overflow:auto">Selected</p>
                     <div>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color:crimson" id="DeleteCategory">🗑️</button>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color: cadetblue" id="EditCategory">📝</button>
                         <button class="CircleButton" style="height: 50px; width: 50px; background-color: #7f8d46" id="AddProduct">+</button>
                     </div>
                 </div>
@@ -139,6 +142,9 @@
     <script src="/js/NavbarActions.js"></script>
 
     <script>
+
+        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
+        console.log(window.API_BASE_URL);
         let AddProduct = document.getElementById("AddProduct");
 
         AddProduct.onclick = (e) => {
@@ -187,7 +193,7 @@
                 console.log(search);
                 const query = Qs.stringify(search);
                 history.pushState(null, null, `?${query}`);
-                const response = await axios.get(`https://goose.itstep.click/api/Products/search?${query}`, {
+                const response = await axios.get(`${window.API_BASE_URL}/api/Products/search?${query}`, {
                     headers: {
                         'Accept': '*/*'
                     }
@@ -200,8 +206,8 @@
                 listProducts.innerHTML = "";
                 products.forEach(item => {
                     listProducts.innerHTML += `
-                        <div class="CategoryDisplay">
-                            <img src="https://goose.itstep.click/images/200_${item.images[0]}" alt="Cover">
+                        <div class="CategoryDisplay" onclick="ChooseCategory(${item.id}, '${item.name}')>
+                            <img src="${window.API_BASE_URL}/images/200_${item.images[0]}" alt="Cover">
                             <div style="padding: 0px 0px 0px 10px; width: 70%; display:flex; justify-content: space-between; overflow-y: auto; max-height: 200px;">
                                 <div style="padding: 0px 0px 0px 10px; width: 50%">
                                     <h3 >${item.name}<h3>
@@ -223,10 +229,17 @@
             hide_loading();
         }
 
+        let SelectedProduct = 1;
+        function ChooseProduct(id, name) {
+            SelectedProduct = id;
+            console.log(SelectedProduct, name);
+            SelectedLabel.innerText = name;
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             console.log("Load Dom");
             try {
-                var list = await axios.get("https://goose.itstep.click/api/Categories/list");
+                var list = await axios.get(`${window.API_BASE_URL}/api/Categories/list`);
                 const { data } = list;
 
                 const selectElement = document.getElementById('Category');
