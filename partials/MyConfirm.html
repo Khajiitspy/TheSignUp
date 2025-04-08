@@ -1,0 +1,17 @@
+﻿<div class="modal" id="ConfirmModal">
+    <div class="modal-content" style="">
+        <p style="" id="Question"></p>
+        <div style="display: flex; justify-content:space-evenly;">
+            <button id="Decline" class="MainButton" style="margin: 0px 20px 0px 0px">No</button>
+            <button id="Allow" class="MainButton" style="margin: 0px 0px 0px 20px">Yes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const Decline = document.getElementById('Decline');
+    Decline.onclick = (e) => {
+        const ConfirmModal = document.getElementById('ConfirmModal');
+        ConfirmModal.style.display = "none";
+    }
+</script>

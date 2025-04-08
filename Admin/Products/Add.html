@@ -29,7 +29,7 @@
         <script>loadDOM('/partials/AdminPanelMenu.html')</script>
         <div class="container" style="max-width: 800px; max-height: 530px">
             <form id="AddProductForm" style=" display:flex; flex-direction:column; align-items:center;">
-                <h1>Add Product</h1>
+                <h1 id="PageHeader">Add Product</h1>
 
                 <div style="display:flex; flex-direction:column; align-items:center; max-height: 380px; width: 650px; overflow:auto">
                     <label for="ProductName">Product Name</label>
@@ -76,7 +76,7 @@
 
                 <div style="width: 100%; display:flex; justify-content:space-between; margin-top: 20px;">
                     <button class="MainButton" style="width: 47%; background-color: slategrey" id="CancelAdd">Cancel</button>
-                    <button class="MainButton" style="width: 47%" type="submit">Add</button>
+                    <button class="MainButton" style="width: 47%" type="submit">Done</button>
                 </div>
             </form>
         </div>
@@ -93,7 +93,6 @@
     <script src="/js/NavbarActions.js"></script>
 
     <script>
-        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
         console.log(window.API_BASE_URL);
         tinymce.init({
             selector: '#Description',
@@ -128,10 +127,7 @@
             const images = ImageCollection.getElementsByTagName('img');
             let IDs = [];
 
-            //Тут ми завантажуємо список фото, які нам потрібно, щоб були на сервері
-
             for (let i = 0; i < images.length; i++) {
-                /*                await uploadImage(images[i]);*/
 
                 console.log(images[i].src)
                 const data = {
@@ -149,43 +145,79 @@
                 }
             }
 
-            console.log(IDs); //тут є баг Console.log - від всирівно виводить правильні дані, але не вірно.
-            //Цей код має працювати лиш тоді, коли усі фото уже на сервері,
-            //бо інакше масив IDs - є пустий і ми фото не відправляємо
+            console.log(IDs);
 
-            const xhr = new XMLHttpRequest();
-            const url = `${window.API_BASE_URL}/api/Products/add`;
-            const data = {
-                name: document.getElementById("ProductName").value,
-                priority: document.getElementById("PriorityInput").value,
-                categoryId: document.getElementById('Category').value,
-                price: document.getElementById("PriceInput").value,
-                description: tinymce.activeEditor.getContent(),
-                ids: IDs // тут пустий масив - це 100% на сервер фото не підуть
-            };
+            console.log(EditMode);
 
-            console.log(data);
+            if (EditMode == -1) {
+                const xhr = new XMLHttpRequest();
+                const url = `${window.API_BASE_URL}/api/Products/add`;
+                const data = {
+                    name: document.getElementById("ProductName").value,
+                    priority: document.getElementById("PriorityInput").value,
+                    categoryId: document.getElementById('Category').value,
+                    price: document.getElementById("PriceInput").value,
+                    description: tinymce.activeEditor.getContent(),
+                    ids: IDs
+                };
 
-            xhr.open("POST", url, true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        hide_loading();
-                        console.log("Success:", xhr.responseText);
-                    } else {
-                        hide_loading();
-                        HandleError(xhr.responseText)
+                console.log(data);
+
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            hide_loading();
+                            console.log("Success:", xhr.responseText);
+                            location.href = "/Admin/AdminPanel_Products.html";
+                        } else {
+                            hide_loading();
+                            HandleError(xhr.responseText)
+                        }
                     }
-                }
-            };
+                };
 
-            // Send request
-            xhr.send(JSON.stringify(data));
+                // Send request
+                xhr.send(JSON.stringify(data));
+            }
+            else {
+                const xhr = new XMLHttpRequest();
+                const url = `${window.API_BASE_URL}/api/Products/edit`;
+                const data = {
+                    id: EditMode,
+                    name: document.getElementById("ProductName").value,
+                    priority: document.getElementById("PriorityInput").value,
+                    categoryId: document.getElementById('Category').value,
+                    price: document.getElementById("PriceInput").value,
+                    description: tinymce.activeEditor.getContent(),
+                    image: SomeimageParameter,
+                    ids: IDs
+                };
 
+                console.log(data);
 
-            location.reload();
-            
+                xhr.open("PUT", url, true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+
+                            console.log("Success:", xhr.responseText);
+                            hide_loading();
+                            location.href = "/Admin/AdminPanel_Products.html";
+
+                        } else if (xhr.status === 400) {
+                            hide_loading();
+                            console.log(xhr.responseText);
+                            HandleError(xhr.responseText);
+                        }
+                    }
+                };
+
+                // Send request
+                xhr.send(JSON.stringify(data));
+            }
         });
 
         function HandleError(Response) {
@@ -220,8 +252,8 @@
                     });
                 });
             }
-            catch {
-                console.error("Error:", Response);
+            catch(error) {
+                console.error("Error:", errorResponse, error);
             }
         }
 
@@ -250,60 +282,11 @@
         fileInput.addEventListener('change', function (event) {
             const { target } = event;
             const { files } = target;
-            const imageCollection = document.getElementById('ImageCollection');
-            imageCollection.style.display = "flex";
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (file) {
-                    const reader = new FileReader();
-
-                    reader.onload = function (e) {
-                        imageToBase64(e.target.result, function (base64) {
-                            const imgContainer = document.createElement('div');
-                            imgContainer.style.position = 'relative';
-                            imgContainer.style.marginRight = '10px';
-                            imgContainer.style.borderRadius = '5px';
-
-                            const img = document.createElement('img');
-                            img.src = base64;
-                            img.style.width = '200px';
-                            img.style.height = '200px';
-                            document.body.appendChild(img);
-
-                            const removeButton = document.createElement('button');
-                            removeButton.textContent = 'X';
-                            removeButton.style.position = 'absolute';
-                            removeButton.style.top = '0';
-                            removeButton.style.right = '0';
-                            removeButton.style.background = 'red';
-                            removeButton.style.color = 'white';
-                            removeButton.style.border = 'none';
-                            removeButton.style.borderRadius = '50%';
-                            removeButton.style.width = '20px';
-                            removeButton.style.height = '20px';
-                            removeButton.style.cursor = 'pointer';
-                            removeButton.style.display = 'none';
-
-                            imgContainer.appendChild(img);
-                            imgContainer.appendChild(removeButton);
-                            imageCollection.appendChild(imgContainer);
-
-                            imgContainer.addEventListener('mouseover', function () {
-                                removeButton.style.display = 'block';
-                            });
-
-                            imgContainer.addEventListener('mouseout', function () {
-                                removeButton.style.display = 'none';
-                            });
-
-                            removeButton.addEventListener('click', function () {
-                                imageCollection.removeChild(imgContainer);
-                            });
-                        });
-                    };
-
-                    reader.readAsDataURL(file);
+                    AddToImageCollection(file);
                 }
             }
         });
@@ -330,6 +313,85 @@
             img.src = imageUrl;
         }
 
+        function imageToItem(image) {
+            const imageCollection = document.getElementById('ImageCollection');
+            imageCollection.style.display = "flex";
+            imageToBase64(image, function (base64) {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                imgContainer.style.marginRight = '10px';
+                imgContainer.style.borderRadius = '5px';
+
+                const img = document.createElement('img');
+                img.src = base64;
+                img.style.width = '200px';
+                img.style.height = '200px';
+                img.style.borderRadius = '5px';
+                document.body.appendChild(img);
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'X';
+                removeButton.style.position = 'absolute';
+                removeButton.style.top = '0';
+                removeButton.style.right = '0';
+                removeButton.style.background = 'red';
+                removeButton.style.color = 'white';
+                removeButton.style.border = 'none';
+                removeButton.style.borderRadius = '50%';
+                removeButton.style.width = '20px';
+                removeButton.style.height = '20px';
+                removeButton.style.cursor = 'pointer';
+                removeButton.style.display = 'none';
+
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(removeButton);
+                imageCollection.appendChild(imgContainer);
+
+                imgContainer.addEventListener('mouseover', function () {
+                    removeButton.style.display = 'block';
+                });
+
+                imgContainer.addEventListener('mouseout', function () {
+                    removeButton.style.display = 'none';
+                });
+
+                removeButton.addEventListener('click', function () {
+                    imageCollection.removeChild(imgContainer);
+                });
+            });
+        }
+
+        function AddToImageCollection(source) {
+
+            try {
+                console.log(source);
+                if (isURL(source)) {
+                    console.log("Source is URL");
+                    fetch(source)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const objectURL = URL.createObjectURL(blob);
+                            imageToItem(objectURL);
+                        });
+                } else {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        imageToItem(e.target.result);
+                    };
+
+                    reader.readAsDataURL(source);
+                }
+            } catch (error) {
+                console.error("Error loading Images:", error);
+            }
+        }
+
+        function isURL(str) {
+            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+            return urlPattern.test(str);
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             console.log("Load Dom");
             try {
@@ -351,7 +413,51 @@
             catch (error) {
                 console.error("error load category", error);
             }
+
+            LoadURL();
         });
+
+        let EditMode = -1;
+
+        function LoadURL() {
+            let Edit = new URLSearchParams(window.location.search).get('Edit') || '';
+            if (Edit != '') {
+                EditMode = Edit;
+                document.getElementById("PageHeader").innerText = "Edit Product";
+                LoadExisting();
+            }
+        }
+
+        let SomeimageParameter = "";
+
+        async function LoadExisting() {
+            show_loading();
+            try {
+                const response = await axios.get(`${window.API_BASE_URL}/api/Products/get/${EditMode}`, {
+                    headers: {
+                        'Accept': '*/*'
+                    }
+                });
+                const { data } = response;
+                console.log("server result", data);
+                const { categoryId, categoryName, description, id, image, images, name, price, priority } = data;
+                document.getElementById("PriorityInput").value = priority;
+                document.getElementById("ProductName").value = name;
+                document.getElementById("PriceInput").value = price;
+                document.getElementById("Category").value = categoryId;
+                SomeimageParameter = image;
+                tinymce.activeEditor.setContent(description);
+
+                images.forEach(Im => {
+                    console.log(Object.prototype.toString.apply(Im));
+                    AddToImageCollection(`${window.API_BASE_URL}/images/200_${Im.name}`);
+                });
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+
+            hide_loading();
+        }
     </script>
 </body>
 </html>

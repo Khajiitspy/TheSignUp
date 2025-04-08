@@ -174,17 +174,8 @@
         </div>
     </div>
 
-    <div class="modal" id="ConfirmModal">
-        <div class="modal-content" style="">
-            <p style="" id="Question"></p>
-            <div style="display: flex; justify-content:space-evenly;">
-                <button id="Decline" class="MainButton" style="margin: 0px 20px 0px 0px">No</button>
-                <button id="Allow" class="MainButton" style="margin: 0px 0px 0px 20px">Yes</button>
-            </div>
-        </div>
-    </div>
-
     <script>loadDOM('/partials/AvatarEditor.html')</script>
+    <script>loadDOM('/partials/MyConfirm.html')</script>
     <script>loadDOM('/partials/LoadingScreen.html')</script>
 
 
@@ -194,7 +185,6 @@
     <script src="/js/NavbarActions.js"></script>
 
     <script>
-        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
         console.log(window.API_BASE_URL);
         let mode = "edit";
         let cropper;
@@ -364,16 +354,10 @@
         }
 
         const Allow = document.getElementById('Allow');
-        const Decline = document.getElementById('Decline');
 
         Allow.onclick = (e) => {
             Remove(SelectedCategory);
 
-            const ConfirmModal = document.getElementById('ConfirmModal');
-            ConfirmModal.style.display = "none";
-        }
-
-        Decline.onclick = (e) => {
             const ConfirmModal = document.getElementById('ConfirmModal');
             ConfirmModal.style.display = "none";
         }

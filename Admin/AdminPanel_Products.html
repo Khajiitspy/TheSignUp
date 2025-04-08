@@ -100,8 +100,8 @@
                     <h1 id="pageHeader">Products</h1>
                     <p id="SelectedLabel" style="font-size:12px; color:#403a2c; max-width:150px; overflow:auto">Selected</p>
                     <div>
-                        <button class="CircleButton" style="height: 50px; width: 50px; background-color:crimson" id="DeleteCategory">🗑️</button>
-                        <button class="CircleButton" style="height: 50px; width: 50px; background-color: cadetblue" id="EditCategory">📝</button>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color:crimson" id="DeleteProduct">🗑️</button>
+                        <button class="CircleButton" style="height: 50px; width: 50px; background-color: cadetblue" id="EditProduct">📝</button>
                         <button class="CircleButton" style="height: 50px; width: 50px; background-color: #7f8d46" id="AddProduct">+</button>
                     </div>
                 </div>
@@ -138,12 +138,11 @@
     </div>
 
     <script>loadDOM('/partials/LoadingScreen.html')</script>
+    <script>loadDOM('/partials/MyConfirm.html')</script>
 
     <script src="/js/NavbarActions.js"></script>
 
     <script>
-
-        window.API_BASE_URL = 'https://goose.itstep.click'; // You can remove this when the program stops being dumb
         console.log(window.API_BASE_URL);
         let AddProduct = document.getElementById("AddProduct");
 
@@ -206,21 +205,21 @@
                 listProducts.innerHTML = "";
                 products.forEach(item => {
                     listProducts.innerHTML += `
-                        <div class="CategoryDisplay" onclick="ChooseCategory(${item.id}, '${item.name}')>
-                            <img src="${window.API_BASE_URL}/images/200_${item.images[0]}" alt="Cover">
-                            <div style="padding: 0px 0px 0px 10px; width: 70%; display:flex; justify-content: space-between; overflow-y: auto; max-height: 200px;">
-                                <div style="padding: 0px 0px 0px 10px; width: 50%">
-                                    <h3 >${item.name}<h3>
-                                    <h3 style="fontSize:18px; color:forestgreen">€ ${item.price}<h3>
-                                    <p>Category: ${item.categoryName}</p>
-                                    <p>Priority: ${item.priority}</p>
-                                </div>
-                                <div style="padding: 0px 0px 0px 10px; width: 50%">
-                                    <p>Description: ${item.description}</p>
+                            <div class="CategoryDisplay" onclick="ChooseProduct(${item.id}, '${item.name}')">
+                                <img src="${window.API_BASE_URL}/images/200_${item.images[0]}" alt="Cover">
+                                <div style="padding: 0px 0px 0px 10px; width: 70%; display:flex; justify-content: space-between; overflow-y: auto; max-height: 200px;">
+                                    <div style="padding: 0px 0px 0px 10px; width: 50%">
+                                        <h3 >${item.name}<h3>
+                                        <h3 style="fontSize:18px; color:forestgreen">€ ${item.price}<h3>
+                                        <p>Category: ${item.categoryName}</p>
+                                        <p>Priority: ${item.priority}</p>
+                                    </div>
+                                    <div style="padding: 0px 0px 0px 10px; width: 50%">
+                                        <p>Description: ${item.description}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        `;
                 });
                 updatePagination();
             } catch (error) {
@@ -229,11 +228,60 @@
             hide_loading();
         }
 
-        let SelectedProduct = 1;
+        let SelectedProduct = -1;
         function ChooseProduct(id, name) {
             SelectedProduct = id;
             console.log(SelectedProduct, name);
             SelectedLabel.innerText = name;
+        }
+
+        let DeleteProduct = document.getElementById("DeleteProduct");
+
+        DeleteProduct.onclick = (e) => {
+            if (SelectedProduct != -1) {
+                const ConfirmModal = document.getElementById('ConfirmModal');
+                const Question = document.getElementById('Question');
+                Question.innerText = `Are you sure you want to delete ${SelectedLabel.innerText}?`;
+                ConfirmModal.style.display = "block";
+            }
+        }
+
+        const Allow = document.getElementById('Allow');
+
+        Allow.onclick = (e) => {
+            Remove(SelectedProduct);
+
+            const ConfirmModal = document.getElementById('ConfirmModal');
+            ConfirmModal.style.display = "none";
+        }
+
+        let EditProduct = document.getElementById("EditProduct");
+
+        EditProduct.onclick = (e) => {
+            if (SelectedProduct != -1) {
+                location.href = "/Admin/Products/Add.html?Edit=" + encodeURIComponent(SelectedProduct);
+            }
+        }
+
+        async function Remove(id) {
+            event.preventDefault();
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/Products/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Request failed');
+                }
+
+                fetchProducts();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+            }
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -255,6 +303,8 @@
             catch (error) {
                 console.error("error load category", error);
             }
+
+            loadUrl();
         });
 
 
@@ -304,7 +354,7 @@
             fetchProducts();
         }
 
-        loadUrl();
+/*        loadUrl();*/
     </script>
 </body>
 </html>
